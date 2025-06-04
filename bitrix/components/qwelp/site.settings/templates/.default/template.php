@@ -111,9 +111,11 @@ Asset::getInstance()->addJs($this->GetFolder() . '/script.js');
                         <!-- 1) Level 1 (видимые) -->
                         <?php if (!empty($visibleLevel1)): ?>
                             <?php foreach ($visibleLevel1 as $setting): ?>
+                                <?php $width = !empty($setting['percent']) ? $setting['percent'] : '100%'; ?>
                                 <div class="setting-item"
                                      data-setting-code="<?= htmlspecialcharsbx($setting['code']) ?>"
                                      data-setting-type="<?= htmlspecialcharsbx($setting['type']) ?>"
+                                     style="flex-basis: <?= htmlspecialcharsbx($width) ?>; max-width: <?= htmlspecialcharsbx($width) ?>;"
                                 >
                                     <div class="setting-label">
                                         <?= htmlspecialcharsbx($setting['label']) ?>
@@ -230,9 +232,11 @@ Asset::getInstance()->addJs($this->GetFolder() . '/script.js');
                             </div>
                             <div id="hidden-level1-<?= htmlspecialcharsbx($sec1['id']) ?>" class="collapse-content">
                                 <?php foreach ($hiddenLevel1 as $setting): ?>
+                                    <?php $width = !empty($setting['percent']) ? $setting['percent'] : '100%'; ?>
                                     <div class="hidden-setting-item"
                                          data-setting-code="<?= htmlspecialcharsbx($setting['code']) ?>"
                                          data-setting-type="<?= htmlspecialcharsbx($setting['type']) ?>"
+                                         style="flex-basis: <?= htmlspecialcharsbx($width) ?>; max-width: <?= htmlspecialcharsbx($width) ?>;"
                                     >
                                         <div class="setting-label">
                                             <?= htmlspecialcharsbx($setting['label']) ?>
@@ -383,9 +387,11 @@ Asset::getInstance()->addJs($this->GetFolder() . '/script.js');
                                     <!-- 2.1) Настройки второго уровня (видимые) -->
                                     <?php if (!empty($visibleLevel2)): ?>
                                         <?php foreach ($visibleLevel2 as $setting): ?>
+                                            <?php $width = !empty($setting['percent']) ? $setting['percent'] : '100%'; ?>
                                             <div class="setting-item"
                                                  data-setting-code="<?= htmlspecialcharsbx($setting['code']) ?>"
                                                  data-setting-type="<?= htmlspecialcharsbx($setting['type']) ?>"
+                                                 style="flex-basis: <?= htmlspecialcharsbx($width) ?>; max-width: <?= htmlspecialcharsbx($width) ?>;"
                                             >
                                                 <div class="setting-label">
                                                     <?= htmlspecialcharsbx($setting['label']) ?>
@@ -502,9 +508,11 @@ Asset::getInstance()->addJs($this->GetFolder() . '/script.js');
                                         </div>
                                         <div id="hidden-level2-<?= htmlspecialcharsbx($sec2['id']) ?>" class="collapse-content">
                                             <?php foreach ($hiddenLevel2 as $setting): ?>
+                                                <?php $width = !empty($setting['percent']) ? $setting['percent'] : '100%'; ?>
                                                 <div class="hidden-setting-item"
                                                      data-setting-code="<?= htmlspecialcharsbx($setting['code']) ?>"
                                                      data-setting-type="<?= htmlspecialcharsbx($setting['type']) ?>"
+                                                     style="flex-basis: <?= htmlspecialcharsbx($width) ?>; max-width: <?= htmlspecialcharsbx($width) ?>;"
                                                 >
                                                     <div class="setting-label">
                                                         <?= htmlspecialcharsbx($setting['label']) ?>
@@ -641,9 +649,11 @@ Asset::getInstance()->addJs($this->GetFolder() . '/script.js');
 
                                             <?php if (!empty($sec3['settings'])): ?>
                                                 <?php foreach ($sec3['settings'] as $setting): ?>
+                                                    <?php $width = !empty($setting['percent']) ? $setting['percent'] : '100%'; ?>
                                                     <div class="setting-item"
                                                          data-setting-code="<?= htmlspecialcharsbx($setting['code']) ?>"
                                                          data-setting-type="<?= htmlspecialcharsbx($setting['type']) ?>"
+                                                         style="flex-basis: <?= htmlspecialcharsbx($width) ?>; max-width: <?= htmlspecialcharsbx($width) ?>;"
                                                     >
                                                         <div class="setting-label">
                                                             <?= htmlspecialcharsbx($setting['label']) ?>
@@ -768,9 +778,11 @@ Asset::getInstance()->addJs($this->GetFolder() . '/script.js');
                                                     </div>
                                                     <?php if (!empty($sec3['settings'])): ?>
                                                         <?php foreach ($sec3['settings'] as $setting): ?>
+                                                            <?php $width = !empty($setting['percent']) ? $setting['percent'] : '100%'; ?>
                                                             <div class="hidden-setting-item"
                                                                  data-setting-code="<?= htmlspecialcharsbx($setting['code']) ?>"
                                                                  data-setting-type="<?= htmlspecialcharsbx($setting['type']) ?>"
+                                                                 style="flex-basis: <?= htmlspecialcharsbx($width) ?>; max-width: <?= htmlspecialcharsbx($width) ?>;"
                                                             >
                                                                 <div class="setting-label">
                                                                     <?= htmlspecialcharsbx($setting['label']) ?>
