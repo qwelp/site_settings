@@ -1,0 +1,552 @@
+:root {
+    --site-settings-primary-color: #4a86e8;
+    --site-settings-secondary-color: #f1f1f1;
+    --site-settings-text-color: #333;
+    --site-settings-border-color: #ddd;
+    --site-settings-hover-color: #e9f0fd;
+    --site-settings-active-color: #d0e0fc;
+    --site-settings-overlay-bg: rgba(0, 0, 0, 0.5);
+    --site-settings-panel-bg: #fff;
+    --site-settings-transition-speed: 0.2s;
+    --site-settings-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+    /* Размеры и отступы для более компактного вида */
+    --site-settings-font-size-base: 0.88rem;
+    --site-settings-font-size-small: 0.78rem;
+    --site-settings-gap: 0.5rem;
+    --site-settings-card-radius: 0.4rem;
+    --site-settings-nav-width: 23%;
+    --site-settings-content-width: 77%;
+}
+
+/* -----------------------
+   Кнопка открытия панели
+   ----------------------- */
+.settings-button {
+    display: inline-block;
+    padding: 0.45rem 0.9rem;
+    background: var(--site-settings-primary-color);
+    color: #fff;
+    border: none;
+    border-radius: 0.25rem;
+    font-size: var(--site-settings-font-size-small);
+    cursor: pointer;
+    transition: background var(--site-settings-transition-speed);
+}
+.settings-button:hover {
+    background: #3b78db;
+}
+
+/* ----------------------------------
+   Оверлей и контейнер настроек
+   ---------------------------------- */
+.settings-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--site-settings-overlay-bg);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    transition: opacity var(--site-settings-transition-speed);
+    opacity: 0;
+}
+.settings-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+.settings-panel {
+    background: var(--site-settings-panel-bg);
+    border-radius: 0.5rem;
+    box-shadow: var(--site-settings-shadow);
+    display: flex;
+    width: 90%;
+    max-width: 60rem;
+    max-height: 80vh;
+    overflow: hidden;
+}
+
+/* -------------
+   Навигация
+   ------------- */
+.settings-nav {
+    width: var(--site-settings-nav-width);
+    background: var(--site-settings-secondary-color);
+    overflow-y: auto;
+    border-right: 1px solid var(--site-settings-border-color);
+}
+.settings-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.settings-nav li {
+    padding: 0.5rem 0.9rem;
+    cursor: pointer;
+    font-size: var(--site-settings-font-size-small);
+    transition: background var(--site-settings-transition-speed);
+    white-space: nowrap;
+}
+.settings-nav li:hover,
+.settings-nav li.active {
+    background: var(--site-settings-hover-color);
+}
+.settings-nav li.active {
+    background: var(--site-settings-active-color);
+    border-left: 0.2rem solid var(--site-settings-primary-color);
+}
+
+/* ----------------
+   Основной контент
+   ---------------- */
+.settings-content {
+    width: var(--site-settings-content-width);
+    padding: 1rem 1.2rem;
+    overflow-y: auto;
+    background: var(--site-settings-panel-bg);
+}
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+.settings-title {
+    font-size: var(--site-settings-font-size-base);
+    font-weight: 600;
+}
+.settings-close {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+/* --------------
+   Секции
+   -------------- */
+.settings-section {
+    display: none;
+    flex-direction: column;
+    gap: var(--site-settings-gap);
+}
+.settings-section.active {
+    display: flex;
+}
+
+/* =====================
+   Flex-row для группировки
+   ===================== */
+.settings-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--site-settings-gap);
+    margin-bottom: var(--site-settings-gap);
+}
+
+/* Контейнер-ячейка внутри ряда */
+.settings-cell {
+    display: flex;
+    flex-direction: column;
+    gap: var(--site-settings-gap);
+}
+
+/* =====================
+   Элемент настройки
+   ===================== */
+.setting-item {
+    background: #fff;
+    padding: 0.45rem 0.8rem;
+    border-radius: var(--site-settings-card-radius);
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    border: 1px solid var(--site-settings-border-color);
+}
+.setting-item .setting-label {
+    font-weight: 500;
+    font-size: var(--site-settings-font-size-base);
+    display: flex;
+    align-items: center;
+}
+.help-icon {
+    margin-left: 0.4rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.1rem;
+    height: 1.1rem;
+    border-radius: 50%;
+    background-color: var(--site-settings-primary-color);
+    color: #fff;
+    font-size: 0.65rem;
+    transition: background-color var(--site-settings-transition-speed);
+}
+.help-icon:hover {
+    background-color: #357ae8;
+}
+
+/* Скрытый для скринридеров */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ======================
+   Универсальные опции
+   ====================== */
+.option-input {
+    position: absolute;
+    opacity: 0;
+}
+.option-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.3rem 0.6rem;
+    border-radius: 0.3rem;
+    background: var(--site-settings-secondary-color);
+    color: var(--site-settings-text-color);
+    font-size: var(--site-settings-font-size-small);
+    cursor: pointer;
+    transition: background var(--site-settings-transition-speed), color var(--site-settings-transition-speed);
+    border: 1px solid transparent;
+    margin: 0.2rem 0.2rem 0 0;
+}
+.option-label:hover {
+    background: var(--site-settings-hover-color);
+}
+.option-input:checked + .option-label {
+    background: var(--site-settings-primary-color);
+    color: #fff;
+    border-color: var(--site-settings-primary-color);
+}
+
+/* Flex-контейнер для текстовых радио-опций */
+.radio-options-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem;
+}
+.radio-options-wrapper .option-label {
+    flex: 0 1 calc(33.333% - 0.4rem);
+    text-align: center;
+}
+
+/* ==========================
+   Переключатель (тумблер)
+   ========================== */
+.toggle-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.option-input[type="checkbox"] + .toggle-label {
+    width: 2.2rem;
+    height: 1.1rem;
+    border-radius: 9999px;
+    background: var(--site-settings-secondary-color);
+    position: relative;
+    cursor: pointer;
+    margin: 0;
+    padding: 0;
+}
+.option-input[type="checkbox"] + .toggle-label::after {
+    content: "";
+    position: absolute;
+    top: 0.2rem;
+    left: 0.2rem;
+    width: 0.7rem;
+    height: 0.7rem;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform var(--site-settings-transition-speed);
+}
+.option-input[type="checkbox"]:checked + .toggle-label::after {
+    transform: translateX(1.2rem);
+    background: var(--site-settings-primary-color);
+}
+
+/* ===============
+   Селект-бокс
+   =============== */
+.select-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 0.4rem;
+}
+.select-wrapper select {
+    width: 100%;
+    padding: 0.45rem 1.6rem 0.45rem 0.5rem;
+    border: 1px solid var(--site-settings-border-color);
+    border-radius: 0.3rem;
+    background: #fff;
+    font-size: var(--site-settings-font-size-small);
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%23888' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.6rem center;
+    background-size: 0.8rem;
+}
+.select-wrapper select:focus {
+    outline: none;
+    border-color: var(--site-settings-primary-color);
+    box-shadow: 0 0 0 1px rgba(74, 134, 232, 0.2);
+}
+
+/* ======================
+   Радио-картинки (compact)
+   ====================== */
+.radio-image-options-wrapper {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+    gap: 0.3rem;
+    margin-top: 0.5rem;
+}
+.radio-image-option {
+    position: relative;
+    cursor: pointer;
+}
+.radio-image-option label img {
+    width: 100%;
+    height: auto;
+    max-height: 4rem;
+    object-fit: contain;
+    border: 1px solid var(--site-settings-border-color);
+    border-radius: 0.3rem;
+    transition: border-color var(--site-settings-transition-speed);
+}
+.radio-image-option .option-input:checked + label img {
+    border-color: var(--site-settings-primary-color);
+}
+
+/* ====================
+   Кнопки действий
+   ==================== */
+.settings-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    margin-top: 1rem;
+}
+.btn-apply,
+.btn-reset {
+    padding: 0.45rem 0.9rem;
+    border: none;
+    border-radius: 0.25rem;
+    font-size: var(--site-settings-font-size-small);
+    cursor: pointer;
+    transition: background var(--site-settings-transition-speed);
+}
+.btn-apply {
+    background: var(--site-settings-primary-color);
+    color: #fff;
+}
+.btn-reset {
+    background: #f44336;
+    color: #fff;
+}
+
+/* ======================
+   Подсказка (tooltip)
+   ====================== */
+.help-tooltip {
+    position: absolute;
+    background: #ffffff;
+    border: 1px solid #cccccc;
+    padding: 0.5rem;
+    border-radius: 0.3rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    z-index: 10000;
+    display: none;
+    max-width: 200px;
+    font-size: var(--site-settings-font-size-small);
+}
+.help-tooltip.active {
+    display: block;
+}
+.help-tooltip-text {
+    margin-bottom: 0.4rem;
+    color: #333;
+}
+.help-tooltip-image {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin-top: 0.4rem;
+}
+
+/* ===============================
+   Стилизация подразделов (компакт)
+   =============================== */
+.settings-subsection {
+    background: #fff;
+    padding: 0.5rem 0.8rem;
+    border-radius: var(--site-settings-card-radius);
+    margin-bottom: 0.4rem;
+    border: 1px solid var(--site-settings-border-color);
+    transition:
+            background-color var(--site-settings-transition-speed),
+            box-shadow var(--site-settings-transition-speed),
+            transform var(--site-settings-transition-speed),
+            margin var(--site-settings-transition-speed);
+}
+.settings-subsection:hover {
+    background-color: var(--site-settings-hover-color);
+}
+.settings-subsection.dragging {
+    background-color: #e6f7ff;
+    opacity: 0.95;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: scale(1.02);
+    border: 2px dashed var(--site-settings-primary-color);
+    cursor: grabbing;
+    z-index: 100;
+}
+.settings-subsection.over {
+    background-color: var(--site-settings-hover-color);
+    border-top: 2px solid var(--site-settings-primary-color);
+    margin-top: -2px;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+.settings-subsection.dropped {
+    animation: dropAnim 0.2s ease-out;
+}
+@keyframes dropAnim {
+    0%   { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+.drag-handle {
+    position: absolute;
+    right: 0.6rem;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: grab;
+    font-size: 1.1rem;
+    color: #999;
+    user-select: none;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+.drag-handle:hover {
+    color: #555;
+    transform: translateY(-50%) scale(1.2);
+}
+.drag-handle:active {
+    cursor: grabbing;
+}
+.subsection-header {
+    font-weight: 500;
+    margin-bottom: 0.4rem;
+    font-size: var(--site-settings-font-size-base);
+    display: flex;
+    align-items: center;
+}
+
+/* =====================
+   Третий уровень (рамка)
+   ===================== */
+.third-level-frame {
+    background: #fff;
+    border: 1px solid #ccc;
+    padding: 0.45rem 0.8rem;
+    margin: 0.6rem 0;
+    border-radius: var(--site-settings-card-radius);
+}
+.third-level-title {
+    font-weight: 500;
+    margin-bottom: 0.4rem;
+    font-size: var(--site-settings-font-size-base);
+}
+
+/* =============================
+   Скрываемый блок (collapse)
+   ============================= */
+.collapse-toggle {
+    display: inline-block;
+    margin: 0.6rem 0;
+    cursor: pointer;
+    color: var(--site-settings-primary-color);
+    font-weight: 500;
+    font-size: var(--site-settings-font-size-small);
+    transition: color 0.2s ease;
+}
+.collapse-toggle:hover {
+    color: #357ae8;
+}
+.collapse-content {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.3s ease;
+}
+.collapse-content.open {
+    max-height: 1500px;
+}
+.hidden-setting-item {
+    background: #fff;
+    padding: 0.45rem 0.8rem;
+    border-radius: var(--site-settings-card-radius);
+    border: 1px solid var(--site-settings-border-color);
+    margin-bottom: 0.4rem;
+}
+
+/* ============
+   Адаптив
+   ============ */
+@media (max-width: 768px) {
+    .settings-panel {
+        flex-direction: column;
+        width: 95%;
+    }
+    .settings-nav {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--site-settings-border-color);
+    }
+    .settings-nav ul {
+        display: flex;
+        overflow-x: auto;
+    }
+    .settings-nav li {
+        flex: none;
+        border-bottom: 2px solid transparent;
+    }
+    .settings-nav li.active {
+        border-left: none;
+        border-bottom: 2px solid var(--site-settings-primary-color);
+    }
+    .settings-content {
+        width: 100%;
+        padding: 0.8rem 1rem;
+    }
+    .radio-image-options-wrapper {
+        grid-template-columns: repeat(auto-fill, minmax(45%, 1fr));
+    }
+}
+@media (max-width: 480px) {
+    .settings-panel {
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+    }
+    .settings-content {
+        padding: 0.6rem;
+    }
+    .radio-image-options-wrapper {
+        grid-template-columns: 1fr;
+    }
+    .settings-actions {
+        flex-direction: column;
+    }
+    .settings-actions button {
+        width: 100%;
+    }
+}
