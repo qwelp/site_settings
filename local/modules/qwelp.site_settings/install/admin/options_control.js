@@ -1,4 +1,5 @@
 (function() {
+    'use strict';
     document.addEventListener("DOMContentLoaded", function () {
         const root              = document.querySelector('.settings-form[data-control-value]');
         if (!root) return;
