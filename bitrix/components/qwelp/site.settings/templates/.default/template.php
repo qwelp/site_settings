@@ -38,6 +38,32 @@ Asset::getInstance()->addCss($this->GetFolder() . '/style.css');
 Asset::getInstance()->addJs($this->GetFolder() . '/script.js');
 ?>
 
+<?php
+if (!function_exists('qwelpSiteSettingsWidth')) {
+    /**
+     * Normalize percent width value for flex items.
+     * Empty values return 100%, numbers are treated as percentages.
+     */
+    function qwelpSiteSettingsWidth($value)
+    {
+        if ($value === null || $value === '') {
+            return '100%';
+        }
+
+        $value = trim((string)$value);
+        if ($value === '') {
+            return '100%';
+        }
+
+        if (preg_match('/^\d+(?:\.\d+)?$/', $value)) {
+            return $value . '%';
+        }
+
+        return $value;
+    }
+}
+?>
+
 <div class="container">
     <button id="open-settings" class="settings-button">
         <?= Loc::getMessage('QWELP_SITE_SETTINGS_OPEN_BUTTON') ?>
@@ -111,7 +137,7 @@ Asset::getInstance()->addJs($this->GetFolder() . '/script.js');
                         <!-- 1) Level 1 (видимые) -->
                         <?php if (!empty($visibleLevel1)): ?>
                             <?php foreach ($visibleLevel1 as $setting): ?>
-                                <?php $width = !empty($setting['percent']) ? $setting['percent'] : '100%'; ?>
+                                <?php $width = qwelpSiteSettingsWidth($setting['percent'] ?? null); ?>
                                 <div class="setting-item"
                                      data-setting-code="<?= htmlspecialcharsbx($setting['code']) ?>"
                                      data-setting-type="<?= htmlspecialcharsbx($setting['type']) ?>"
@@ -232,7 +258,7 @@ Asset::getInstance()->addJs($this->GetFolder() . '/script.js');
                             </div>
                             <div id="hidden-level1-<?= htmlspecialcharsbx($sec1['id']) ?>" class="collapse-content">
                                 <?php foreach ($hiddenLevel1 as $setting): ?>
-                                    <?php $width = !empty($setting['percent']) ? $setting['percent'] : '100%'; ?>
+                                    <?php $width = qwelpSiteSettingsWidth($setting['percent'] ?? null); ?>
                                     <div class="hidden-setting-item"
                                          data-setting-code="<?= htmlspecialcharsbx($setting['code']) ?>"
                                          data-setting-type="<?= htmlspecialcharsbx($setting['type']) ?>"
@@ -387,7 +413,7 @@ Asset::getInstance()->addJs($this->GetFolder() . '/script.js');
                                     <!-- 2.1) Настройки второго уровня (видимые) -->
                                     <?php if (!empty($visibleLevel2)): ?>
                                         <?php foreach ($visibleLevel2 as $setting): ?>
-                                            <?php $width = !empty($setting['percent']) ? $setting['percent'] : '100%'; ?>
+                                            <?php $width = qwelpSiteSettingsWidth($setting['percent'] ?? null); ?>
                                             <div class="setting-item"
                                                  data-setting-code="<?= htmlspecialcharsbx($setting['code']) ?>"
                                                  data-setting-type="<?= htmlspecialcharsbx($setting['type']) ?>"
@@ -508,7 +534,7 @@ Asset::getInstance()->addJs($this->GetFolder() . '/script.js');
                                         </div>
                                         <div id="hidden-level2-<?= htmlspecialcharsbx($sec2['id']) ?>" class="collapse-content">
                                             <?php foreach ($hiddenLevel2 as $setting): ?>
-                                                <?php $width = !empty($setting['percent']) ? $setting['percent'] : '100%'; ?>
+                                                <?php $width = qwelpSiteSettingsWidth($setting['percent'] ?? null); ?>
                                                 <div class="hidden-setting-item"
                                                      data-setting-code="<?= htmlspecialcharsbx($setting['code']) ?>"
                                                      data-setting-type="<?= htmlspecialcharsbx($setting['type']) ?>"
@@ -649,7 +675,7 @@ Asset::getInstance()->addJs($this->GetFolder() . '/script.js');
 
                                             <?php if (!empty($sec3['settings'])): ?>
                                                 <?php foreach ($sec3['settings'] as $setting): ?>
-                                                    <?php $width = !empty($setting['percent']) ? $setting['percent'] : '100%'; ?>
+                                                    <?php $width = qwelpSiteSettingsWidth($setting['percent'] ?? null); ?>
                                                     <div class="setting-item"
                                                          data-setting-code="<?= htmlspecialcharsbx($setting['code']) ?>"
                                                          data-setting-type="<?= htmlspecialcharsbx($setting['type']) ?>"
@@ -778,7 +804,7 @@ Asset::getInstance()->addJs($this->GetFolder() . '/script.js');
                                                     </div>
                                                     <?php if (!empty($sec3['settings'])): ?>
                                                         <?php foreach ($sec3['settings'] as $setting): ?>
-                                                            <?php $width = !empty($setting['percent']) ? $setting['percent'] : '100%'; ?>
+                                                            <?php $width = qwelpSiteSettingsWidth($setting['percent'] ?? null); ?>
                                                             <div class="hidden-setting-item"
                                                                  data-setting-code="<?= htmlspecialcharsbx($setting['code']) ?>"
                                                                  data-setting-type="<?= htmlspecialcharsbx($setting['type']) ?>"
