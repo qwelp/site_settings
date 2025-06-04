@@ -247,6 +247,14 @@
     box-shadow: 0 0 0 2px rgba(74, 134, 232, 0.2);
 }
 
+/* Поле выбора цвета */
+.color-input {
+    width: 3rem;
+    height: 2rem;
+    padding: 0;
+    border: none;
+}
+
 /* Картинки для радио */
 .radio-image-option {
     position: relative;

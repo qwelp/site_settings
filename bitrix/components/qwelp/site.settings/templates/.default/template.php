@@ -183,6 +183,12 @@ Asset::getInstance()->addJs($this->GetFolder() . '/script.js');
                                                 <?php endforeach; ?>
                                             </select>
                                         </div>
+                                    <?php elseif ($type === 'color'): ?>
+                                        <input type="color"
+                                               id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
+                                               name="<?= htmlspecialcharsbx($setting['code']) ?>"
+                                               value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>"
+                                               class="color-input">
                                     <?php elseif ($type === 'radioImage' && is_array($setting['options'])): ?>
                                         <div class="radio-image-options-wrapper">
                                             <?php foreach ($setting['options'] as $opt): ?>
@@ -302,6 +308,12 @@ Asset::getInstance()->addJs($this->GetFolder() . '/script.js');
                                                     <?php endforeach; ?>
                                                 </select>
                                             </div>
+                                        <?php elseif ($type === 'color'): ?>
+                                            <input type="color"
+                                                   id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                   name="<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                   value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>"
+                                                   class="color-input">
                                         <?php elseif ($type === 'radioImage' && is_array($setting['options'])): ?>
                                             <div class="radio-image-options-wrapper">
                                                 <?php foreach ($setting['options'] as $opt): ?>
@@ -455,6 +467,12 @@ Asset::getInstance()->addJs($this->GetFolder() . '/script.js');
                                                             <?php endforeach; ?>
                                                         </select>
                                                     </div>
+                                                <?php elseif ($type === 'color'): ?>
+                                                    <input type="color"
+                                                           id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                           name="<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                           value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>"
+                                                           class="color-input">
                                                 <?php elseif ($type === 'radioImage' && is_array($setting['options'])): ?>
                                                     <div class="radio-image-options-wrapper">
                                                         <?php foreach ($setting['options'] as $opt): ?>
@@ -574,6 +592,12 @@ Asset::getInstance()->addJs($this->GetFolder() . '/script.js');
                                                                 <?php endforeach; ?>
                                                             </select>
                                                         </div>
+                                                    <?php elseif ($type === 'color'): ?>
+                                                        <input type="color"
+                                                               id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                               name="<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                               value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>"
+                                                               class="color-input">
                                                     <?php elseif ($type === 'radioImage' && is_array($setting['options'])): ?>
                                                         <div class="radio-image-options-wrapper">
                                                             <?php foreach ($setting['options'] as $opt): ?>
@@ -713,6 +737,12 @@ Asset::getInstance()->addJs($this->GetFolder() . '/script.js');
                                                                     <?php endforeach; ?>
                                                                 </select>
                                                             </div>
+                                                        <?php elseif ($type === 'color'): ?>
+                                                            <input type="color"
+                                                                   id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                                   name="<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                                   value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>"
+                                                                   class="color-input">
                                                         <?php elseif ($type === 'radioImage' && is_array($setting['options'])): ?>
                                                             <div class="radio-image-options-wrapper">
                                                                 <?php foreach ($setting['options'] as $opt): ?>
@@ -840,6 +870,12 @@ Asset::getInstance()->addJs($this->GetFolder() . '/script.js');
                                                                             <?php endforeach; ?>
                                                                         </select>
                                                                     </div>
+                                                                <?php elseif ($type === 'color'): ?>
+                                                                    <input type="color"
+                                                                           id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                                           name="<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                                           value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>"
+                                                                           class="color-input">
                                                                 <?php elseif ($type === 'radioImage' && is_array($setting['options'])): ?>
                                                                     <div class="radio-image-options-wrapper">
                                                                         <?php foreach ($setting['options'] as $opt): ?>

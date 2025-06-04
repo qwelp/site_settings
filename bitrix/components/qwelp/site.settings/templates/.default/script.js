@@ -252,6 +252,10 @@ function updateSettingsUI() {
         if (sel) {
             sel.value = value;
         }
+        const color = document.querySelector(`input[type="color"][id="setting_${code}"]`);
+        if (color && value !== null) {
+            color.value = value;
+        }
     });
 }
 
@@ -269,6 +273,9 @@ function applySettings() {
                 } else if (setting.type === 'select') {
                     const sel = document.querySelector(`select[name="${code}"]`);
                     if (sel) currentSettings[code] = sel.value;
+                } else if (setting.type === 'color') {
+                    const color = document.querySelector(`input[type="color"][id="setting_${code}"]`);
+                    if (color) currentSettings[code] = color.value;
                 }
             });
         }
@@ -286,6 +293,9 @@ function applySettings() {
                         } else if (setting.type === 'select') {
                             const sel = document.querySelector(`select[name="${code}"]`);
                             if (sel) currentSettings[code] = sel.value;
+                        } else if (setting.type === 'color') {
+                            const color = document.querySelector(`input[type="color"][id="setting_${code}"]`);
+                            if (color) currentSettings[code] = color.value;
                         }
                     });
                 }
@@ -303,6 +313,9 @@ function applySettings() {
                                 } else if (setting.type === 'select') {
                                     const sel = document.querySelector(`select[name="${code}"]`);
                                     if (sel) currentSettings[code] = sel.value;
+                                } else if (setting.type === 'color') {
+                                    const color = document.querySelector(`input[type="color"][id="setting_${code}"]`);
+                                    if (color) currentSettings[code] = color.value;
                                 }
                             });
                         }
