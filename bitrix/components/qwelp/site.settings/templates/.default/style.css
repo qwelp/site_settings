@@ -96,6 +96,7 @@
     width: 75%;
     padding: 1.875rem;
     overflow-y: auto;
+    position: relative;
 }
 .settings-header {
     display: flex;
@@ -291,6 +292,12 @@
     justify-content: flex-end;
     gap: 0.9375rem;
     margin-top: 1.875rem;
+    position: sticky;
+    bottom: 0;
+    background: var(--site-settings-panel-bg);
+    padding: 0.75rem 0;
+    z-index: 10;
+    width: 100%;
 }
 .btn-apply, .btn-reset {
     padding: 0.625rem 1.25rem;
