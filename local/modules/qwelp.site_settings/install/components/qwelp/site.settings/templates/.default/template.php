@@ -130,18 +130,18 @@ Asset::getInstance()->addJs($this->GetFolder() . '/script.js');
                                     <?php
                                     $type = $setting['type'];
                                     if ($type === 'checkbox'): ?>
-                                        <div class="toggle-wrapper">
-                                            <input
-                                                    type="checkbox"
-                                                    id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                    name="<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                    class="option-input"
-                                            >
-                                            <label
-                                                    for="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                    class="option-label toggle-label"
-                                            ></label>
-                                        </div>
+                                        <label class="toggle-wrapper">
+                                            <div class="toggle-relative">
+                                                <input
+                                                        type="checkbox"
+                                                        id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                        name="<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                        class="toggle-input"
+                                                >
+                                                <div class="toggle-bg"></div>
+                                                <div class="toggle-dot"></div>
+                                            </div>
+                                        </label>
                                     <?php elseif ($type === 'radio' && is_array($setting['options'])): ?>
                                         <div class="radio-options-wrapper">
                                             <?php foreach ($setting['options'] as $opt): ?>
@@ -249,18 +249,18 @@ Asset::getInstance()->addJs($this->GetFolder() . '/script.js');
                                         <?php
                                         $type = $setting['type'];
                                         if ($type === 'checkbox'): ?>
-                                            <div class="toggle-wrapper">
-                                                <input
-                                                        type="checkbox"
-                                                        id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                        name="<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                        class="option-input"
-                                                >
-                                                <label
-                                                        for="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                        class="option-label toggle-label"
-                                                ></label>
-                                            </div>
+                                            <label class="toggle-wrapper">
+                                                <div class="toggle-relative">
+                                                    <input
+                                                            type="checkbox"
+                                                            id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                            name="<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                            class="toggle-input"
+                                                    >
+                                                    <div class="toggle-bg"></div>
+                                                    <div class="toggle-dot"></div>
+                                                </div>
+                                            </label>
                                         <?php elseif ($type === 'radio' && is_array($setting['options'])): ?>
                                             <div class="radio-options-wrapper">
                                                 <?php foreach ($setting['options'] as $opt): ?>
@@ -402,18 +402,18 @@ Asset::getInstance()->addJs($this->GetFolder() . '/script.js');
                                                 <?php
                                                 $type = $setting['type'];
                                                 if ($type === 'checkbox'): ?>
-                                                    <div class="toggle-wrapper">
-                                                        <input
-                                                                type="checkbox"
-                                                                id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                                name="<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                                class="option-input"
-                                                        >
-                                                        <label
-                                                                for="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                                class="option-label toggle-label"
-                                                        ></label>
-                                                    </div>
+                                                    <label class="toggle-wrapper">
+                                                        <div class="toggle-relative">
+                                                            <input
+                                                                    type="checkbox"
+                                                                    id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                                    name="<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                                    class="toggle-input"
+                                                            >
+                                                            <div class="toggle-bg"></div>
+                                                            <div class="toggle-dot"></div>
+                                                        </div>
+                                                    </label>
                                                 <?php elseif ($type === 'radio' && is_array($setting['options'])): ?>
                                                     <div class="radio-options-wrapper">
                                                         <?php foreach ($setting['options'] as $opt): ?>
@@ -521,18 +521,18 @@ Asset::getInstance()->addJs($this->GetFolder() . '/script.js');
                                                     <?php
                                                     $type = $setting['type'];
                                                     if ($type === 'checkbox'): ?>
-                                                        <div class="toggle-wrapper">
-                                                            <input
-                                                                    type="checkbox"
-                                                                    id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                                    name="<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                                    class="option-input"
-                                                            >
-                                                            <label
-                                                                    for="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                                    class="option-label toggle-label"
-                                                            ></label>
-                                                        </div>
+                                                        <label class="toggle-wrapper">
+                                                            <div class="toggle-relative">
+                                                                <input
+                                                                        type="checkbox"
+                                                                        id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                                        name="<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                                        class="toggle-input"
+                                                                >
+                                                                <div class="toggle-bg"></div>
+                                                                <div class="toggle-dot"></div>
+                                                            </div>
+                                                        </label>
                                                     <?php elseif ($type === 'radio' && is_array($setting['options'])): ?>
                                                         <div class="radio-options-wrapper">
                                                             <?php foreach ($setting['options'] as $opt): ?>
@@ -660,18 +660,18 @@ Asset::getInstance()->addJs($this->GetFolder() . '/script.js');
                                                         <?php
                                                         $type = $setting['type'];
                                                         if ($type === 'checkbox'): ?>
-                                                            <div class="toggle-wrapper">
-                                                                <input
-                                                                        type="checkbox"
-                                                                        id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                                        name="<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                                        class="option-input"
-                                                                >
-                                                                <label
-                                                                        for="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                                        class="option-label toggle-label"
-                                                                ></label>
-                                                            </div>
+                                                            <label class="toggle-wrapper">
+                                                                <div class="toggle-relative">
+                                                                    <input
+                                                                            type="checkbox"
+                                                                            id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                                            name="<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                                            class="toggle-input"
+                                                                    >
+                                                                    <div class="toggle-bg"></div>
+                                                                    <div class="toggle-dot"></div>
+                                                                </div>
+                                                            </label>
                                                         <?php elseif ($type === 'radio' && is_array($setting['options'])): ?>
                                                             <div class="radio-options-wrapper">
                                                                 <?php foreach ($setting['options'] as $opt): ?>
@@ -787,18 +787,18 @@ Asset::getInstance()->addJs($this->GetFolder() . '/script.js');
                                                                 <?php
                                                                 $type = $setting['type'];
                                                                 if ($type === 'checkbox'): ?>
-                                                                    <div class="toggle-wrapper">
-                                                                        <input
-                                                                                type="checkbox"
-                                                                                id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                                                name="<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                                                class="option-input"
-                                                                        >
-                                                                        <label
-                                                                                for="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                                                class="option-label toggle-label"
-                                                                        ></label>
-                                                                    </div>
+                                                                    <label class="toggle-wrapper">
+                                                                        <div class="toggle-relative">
+                                                                            <input
+        type="checkbox"
+        id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
+        name="<?= htmlspecialcharsbx($setting['code']) ?>"
+        class="toggle-input"
+                                                                            >
+                                                                            <div class="toggle-bg"></div>
+                                                                            <div class="toggle-dot"></div>
+                                                                        </div>
+                                                                    </label>
                                                                 <?php elseif ($type === 'radio' && is_array($setting['options'])): ?>
                                                                     <div class="radio-options-wrapper">
                                                                         <?php foreach ($setting['options'] as $opt): ?>
