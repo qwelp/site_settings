@@ -252,34 +252,34 @@ const App = () => {
                                     </div>
 
                                     <div className="flex items-center gap-4">
-                                        <label className="flex items-center cursor-pointer">
-                                            <div className="relative">
+                                        <label className="toggle-wrapper">
+                                            <div className="toggle-relative">
                                                 <input
                                                     type="checkbox"
                                                     checked={useCustomHeadingsFont}
                                                     onChange={() => setUseCustomHeadingsFont(!useCustomHeadingsFont)}
-                                                    className="sr-only"
+                                                    className="toggle-input"
                                                 />
-                                                <div className={`block w-14 h-8 rounded-full ${useCustomHeadingsFont ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
-                                                <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition ${useCustomHeadingsFont ? 'transform translate-x-6' : ''}`}></div>
+                                                <div className="toggle-bg"></div>
+                                                <div className="toggle-dot"></div>
                                             </div>
-                                            <span className="ml-3">Другой шрифт заголовков</span>
+                                            <span className="toggle-text">Другой шрифт заголовков</span>
                                         </label>
                                     </div>
 
                                     <div className="flex items-center gap-4">
-                                        <label className="flex items-center cursor-pointer">
-                                            <div className="relative">
+                                        <label className="toggle-wrapper">
+                                            <div className="toggle-relative">
                                                 <input
                                                     type="checkbox"
                                                     checked={useSelfHostedFonts}
                                                     onChange={() => setUseSelfHostedFonts(!useSelfHostedFonts)}
-                                                    className="sr-only"
+                                                    className="toggle-input"
                                                 />
-                                                <div className={`block w-14 h-8 rounded-full ${useSelfHostedFonts ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
-                                                <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition ${useSelfHostedFonts ? 'transform translate-x-6' : ''}`}></div>
+                                                <div className="toggle-bg"></div>
+                                                <div className="toggle-dot"></div>
                                             </div>
-                                            <span className="ml-3">Использовать SELF-HOSTED шрифты</span>
+                                            <span className="toggle-text">Использовать SELF-HOSTED шрифты</span>
                                         </label>
                                     </div>
                                 </div>

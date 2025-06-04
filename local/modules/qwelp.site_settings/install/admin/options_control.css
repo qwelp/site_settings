@@ -80,6 +80,15 @@
     color: #aaa;
 }
 
+/* Поле выбора цвета */
+.settings-form__color {
+    margin-right: 8px;
+    width: 40px;
+    height: 32px;
+    padding: 0;
+    border: none;
+}
+
 /* Кнопки управления */
 .btn-move-up,
 .btn-move-down,

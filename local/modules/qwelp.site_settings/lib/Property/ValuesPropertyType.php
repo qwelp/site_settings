@@ -91,6 +91,7 @@ class ValuesPropertyType
             'radioImage' => [],
             'pathFile'   => [],
             'select'     => [],
+            'color'      => [],
         ], $data);
 
         // Для каждого radioImage-темплейта добавляем URL превью
@@ -115,7 +116,7 @@ class ValuesPropertyType
         // Определяем режим
         $mode = $value['DESCRIPTION'] ?: '';
         if ($mode === '') {
-            foreach (['checkbox','radio','radioImage','pathFile','select'] as $k) {
+            foreach (['checkbox','radio','radioImage','pathFile','select','color'] as $k) {
                 if (!empty($data[$k])) { $mode = $k; break; }
             }
             if ($mode === '') { $mode = 'checkbox'; }
@@ -154,7 +155,8 @@ class ValuesPropertyType
             'radio'      => 'Radio',
             'radioImage' => 'Radio Image',
             'pathFile'   => 'Path to File',
-            'select'     => 'Select'
+            'select'     => 'Select',
+            'color'      => 'Color',
         ];
 
         // Уникальный идентификатор для атрибутов
@@ -186,7 +188,12 @@ class ValuesPropertyType
             $pathFile  = htmlspecialchars($item['pathFile'] ?? '');
 
             $html .= '<div class="settings-form__element" data-element>';
-            $html .= '<input type="text" class="settings-form__input" placeholder="' . Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_VALUE') . '" value="' . $value . '">';
+            if ($mode === 'color') {
+                $color = $value !== '' ? $value : '#000000';
+                $html .= '<input type="color" class="settings-form__color" value="' . $color . '">';
+            } else {
+                $html .= '<input type="text" class="settings-form__input" placeholder="' . Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_VALUE') . '" value="' . $value . '">';
+            }
             $html .= '<input type="text" class="settings-form__input" placeholder="' . Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_LABEL') . '"   value="' . $label . '">';
 
             // Только для режима pathFile — дополнительное текстовое поле
