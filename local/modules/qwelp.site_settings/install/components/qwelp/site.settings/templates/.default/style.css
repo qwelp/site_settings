@@ -1,0 +1,452 @@
+:root {
+    --site-settings-primary-color: #4a86e8;
+    --site-settings-secondary-color: #f1f1f1;
+    --site-settings-text-color: #333;
+    --site-settings-border-color: #ddd;
+    --site-settings-hover-color: #e9f0fd;
+    --site-settings-active-color: #d0e0fc;
+    --site-settings-overlay-bg: rgba(0, 0, 0, 0.5);
+    --site-settings-panel-bg: #fff;
+    --site-settings-transition-speed: 0.2s;
+    --site-settings-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Кнопка открытия */
+.settings-button {
+    display: inline-block;
+    padding: 0.625rem 1.25rem;
+    background: var(--site-settings-primary-color);
+    color: #fff;
+    border: none;
+    border-radius: 0.25rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background var(--site-settings-transition-speed);
+}
+.settings-button:hover {
+    background: #3b78db;
+}
+
+/* Оверлей и панель */
+.settings-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--site-settings-overlay-bg);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    transition: opacity var(--site-settings-transition-speed);
+    opacity: 0;
+}
+.settings-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+.settings-panel {
+    background: var(--site-settings-panel-bg);
+    border-radius: 0.5rem;
+    box-shadow: var(--site-settings-shadow);
+    display: flex;
+    width: 90%;
+    max-width: 62.5rem;
+    height: auto;
+    max-height: 50vh; /* Высота — половина экрана */
+    overflow: hidden;
+}
+
+/* Навигация */
+.settings-nav {
+    width: 25%;
+    background: var(--site-settings-secondary-color);
+    overflow-y: auto;
+}
+.settings-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.settings-nav li {
+    padding: 0.75rem 1.25rem;
+    cursor: pointer;
+    transition: background var(--site-settings-transition-speed);
+}
+.settings-nav li:hover,
+.settings-nav li.active {
+    background: var(--site-settings-hover-color);
+}
+.settings-nav li.active {
+    background: var(--site-settings-active-color);
+    border-left: 0.25rem solid var(--site-settings-primary-color);
+}
+
+/* Контент */
+.settings-content {
+    width: 75%;
+    padding: 1.875rem;
+    overflow-y: auto;
+}
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.875rem;
+}
+.settings-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+.settings-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+/* Секции */
+.settings-section {
+    display: none;
+    flex-direction: column;
+}
+.settings-section.active {
+    display: flex;
+}
+
+/* Элементы настроек */
+.setting-item {
+    padding: 0.5rem 0;
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px dotted #ddd;
+}
+.setting-item:last-child {
+    border-bottom: none;
+}
+.setting-label {
+    font-weight: bold;
+    margin-bottom: 0.625rem;
+    display: flex;
+    align-items: center;
+}
+.help-icon {
+    margin-left: 0.5rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 50%;
+    background-color: var(--site-settings-primary-color);
+    color: #fff;
+    font-size: 0.75rem;
+    text-align: center;
+    flex-shrink: 0;
+    transition: background-color 0.2s ease;
+}
+.help-icon:hover {
+    background-color: #357ae8;
+}
+/* Универсальные опции */
+.option-input {
+    position: absolute;
+    opacity: 0;
+}
+.option-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    margin: 0.25rem 0;
+    border-radius: 0.375rem;
+    background: var(--site-settings-secondary-color);
+    color: var(--site-settings-text-color);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background var(--site-settings-transition-speed), color var(--site-settings-transition-speed);
+}
+.option-label:hover {
+    background: var(--site-settings-hover-color);
+}
+.option-input:checked + .option-label {
+    background: var(--site-settings-primary-color);
+    color: #fff;
+}
+
+/* Переключатель (тумблер) */
+.toggle-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.option-input[type="checkbox"] + .toggle-label {
+    width: 3rem;
+    height: 1.5rem;
+    border-radius: 9999px;
+    background: var(--site-settings-secondary-color);
+    position: relative;
+    cursor: pointer;
+    margin: 0;
+    padding: 0;
+}
+.option-input[type="checkbox"] + .toggle-label::after {
+    content: "";
+    position: absolute;
+    top: 0.25rem;
+    left: 0.25rem;
+    width: 1rem;
+    height: 1rem;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform var(--site-settings-transition-speed);
+}
+.option-input[type="checkbox"]:checked + .toggle-label::after {
+    transform: translateX(1.25rem);
+    background: var(--site-settings-primary-color);
+}
+
+/* Селект */
+.select-wrapper {
+    position: relative;
+    width: 100%;
+}
+.select-wrapper select {
+    width: 100%;
+    padding: 0.625rem 2.5rem 0.625rem 0.75rem;
+    border: 1px solid var(--site-settings-border-color);
+    border-radius: 0.375rem;
+    background: #fff;
+    font-size: 1rem;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%23888' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+}
+.select-wrapper select:focus {
+    outline: none;
+    border-color: var(--site-settings-primary-color);
+    box-shadow: 0 0 0 2px rgba(74, 134, 232, 0.2);
+}
+
+/* Картинки для радио */
+.radio-image-option {
+    position: relative;
+    width: 7.5rem;
+    cursor: pointer;
+}
+.radio-image-option img {
+    width: 100%;
+    height: 5rem;
+    object-fit: cover;
+    border: 2px solid var(--site-settings-border-color);
+    border-radius: 0.375rem;
+    transition: border-color var(--site-settings-transition-speed);
+}
+.radio-image-option .option-input:checked + img {
+    border-color: var(--site-settings-primary-color);
+}
+
+/* Кнопки действий */
+.settings-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.9375rem;
+    margin-top: 1.875rem;
+}
+.btn-apply, .btn-reset {
+    padding: 0.625rem 1.25rem;
+    border: none;
+    border-radius: 0.25rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background var(--site-settings-transition-speed);
+}
+.btn-apply {
+    background: var(--site-settings-primary-color);
+    color: #fff;
+}
+.btn-reset {
+    background: #f44336;
+    color: #fff;
+}
+
+/* Общий контейнер для подсказки (изначально скрыт) */
+.help-tooltip {
+    position: absolute;
+    background: #ffffff;
+    border: 1px solid #cccccc;
+    padding: 8px;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    z-index: 10000;
+    display: none;          /* изначально не отображается */
+    max-width: 240px;       /* чтобы не расползалось слишком широко */
+}
+.help-tooltip.active {
+    display: block;
+}
+.help-tooltip-text {
+    margin-bottom: 6px;
+    color: #333;
+    font-size: 14px;
+}
+.help-tooltip-image {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin-top: 6px;
+}
+
+/* Стилизация разделов и drag&drop */
+.settings-subsection {
+    display: flex;
+    flex-direction: column;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid #e5e5e5;
+    background-color: #fff;
+    position: relative;
+    transition:
+            background-color 0.2s ease,
+            box-shadow 0.2s ease,
+            transform 0.2s ease,
+            margin 0.2s ease;
+}
+.settings-subsection:hover {
+    background-color: #f9f9f9;
+}
+.settings-subsection.dragging {
+    background-color: #e6f7ff;
+    opacity: 0.95;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: scale(1.02);
+    border: 2px dashed var(--site-settings-primary-color);
+    cursor: grabbing;
+    z-index: 100;
+}
+.settings-subsection.over {
+    background-color: #f0f6ff;
+    border-top: 2px solid var(--site-settings-primary-color);
+    margin-top: -2px; /* компенсируем толщину границы */
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+.settings-subsection.dropped {
+    animation: dropAnim 0.2s ease-out;
+}
+@keyframes dropAnim {
+    0%   { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+.drag-handle {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: grab;
+    font-size: 1.2rem;
+    color: #999;
+    user-select: none;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+.drag-handle:hover {
+    color: #555;
+    transform: translateY(-50%) scale(1.2);
+}
+.drag-handle:active {
+    cursor: grabbing;
+}
+.subsection-header {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+.subsection-header .drag-handle {
+    margin-left: 0.5rem;
+}
+
+/* Третий уровень — рамка */
+.third-level-frame {
+    border: 1px solid #ccc;
+    padding: 12px;
+    margin: 10px 0;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+.third-level-title {
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+/* Добавьте в styles.css (должен подключаться автоматически) */
+
+/* Псевдостиль для placeholder при drag&drop */
+.drag-placeholder {
+    background-color: #f0f0f0;
+    border: 2px dashed var(--site-settings-primary-color);
+    margin: 0.5rem 0;
+    transition: height 0.2s ease;
+}
+
+/* При перетаскивании сам элемент слегка полупрозрачный */
+.settings-subsection.dragging {
+    opacity: 0.3;
+}
+
+/* Анимация плавного перемещения */
+.settings-subsection {
+    transition: transform 0.2s ease, margin 0.2s ease;
+}
+
+/* Подсветка места вставки */
+.settings-subsection.over {
+    background-color: #eef5ff;
+}
+
+
+/* Адаптив */
+@media (max-width: 768px) {
+    .settings-panel {
+        flex-direction: column;
+        width: 95%;
+    }
+    .settings-nav {
+        width: 100%;
+    }
+    .settings-nav ul {
+        display: flex;
+        overflow-x: auto;
+    }
+    .settings-nav li {
+        flex: none;
+        border-bottom: 2px solid transparent;
+    }
+    .settings-nav li.active {
+        border-left: none;
+        border-bottom: 2px solid var(--site-settings-primary-color);
+    }
+    .settings-content {
+        width: 100%;
+    }
+}
+@media (max-width: 480px) {
+    .settings-panel {
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+    }
+    .settings-content {
+        padding: 1rem;
+    }
+    .radio-image-option {
+        width: 6rem;
+    }
+    .settings-actions {
+        flex-direction: column;
+    }
+    .settings-actions button {
+        width: 100%;
+    }
+}

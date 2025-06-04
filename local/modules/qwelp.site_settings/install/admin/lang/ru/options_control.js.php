@@ -1,0 +1,26 @@
+<?php
+$MESS['QWELP_SITE_SETTINGS_JS_PARSE_JSON'] = 'Парсим весь JSON, в т.ч. fileUrl';
+$MESS['QWELP_SITE_SETTINGS_JS_TEMP_STORAGE'] = 'Временное хранилище';
+$MESS['QWELP_SITE_SETTINGS_JS_GENERATE_ROW'] = 'Генерация HTML для строки по типу и данным';
+$MESS['QWELP_SITE_SETTINGS_JS_VALUE'] = 'Значение';
+$MESS['QWELP_SITE_SETTINGS_JS_LABEL'] = 'Метка';
+$MESS['QWELP_SITE_SETTINGS_JS_PATH_TO_FILE'] = 'Путь к файлу';
+$MESS['QWELP_SITE_SETTINGS_JS_ADD_FILE'] = 'Добавить файл';
+$MESS['QWELP_SITE_SETTINGS_JS_RENDER_PREVIEW'] = 'Отрисовка превью + кнопка удаления';
+$MESS['QWELP_SITE_SETTINGS_JS_PREVIEW'] = 'Превью';
+$MESS['QWELP_SITE_SETTINGS_JS_DELETE'] = 'Удалить';
+$MESS['QWELP_SITE_SETTINGS_JS_RESET_PREVIEW'] = 'Сбрасывает превью и fileId';
+$MESS['QWELP_SITE_SETTINGS_JS_GET_DATA'] = 'Возвращает данные из DOM';
+$MESS['QWELP_SITE_SETTINGS_JS_UPDATE_FIELDS'] = 'Обновляет скрытые поля JSON и режим';
+$MESS['QWELP_SITE_SETTINGS_JS_DETECT_TYPE'] = 'Определяем тип режима по select';
+$MESS['QWELP_SITE_SETTINGS_JS_UPLOAD_WRAPPER'] = 'Обертка fetch для загрузки файла';
+$MESS['QWELP_SITE_SETTINGS_JS_UPLOAD_ERROR'] = 'Upload error:';
+$MESS['QWELP_SITE_SETTINGS_JS_FETCH_ERROR'] = 'Fetch error:';
+$MESS['QWELP_SITE_SETTINGS_JS_INIT'] = 'Инициализация: отрисуем строки и превью из initialData';
+$MESS['QWELP_SITE_SETTINGS_JS_ADD_ROW'] = 'Добавить строку';
+$MESS['QWELP_SITE_SETTINGS_JS_CHANGE_MODE'] = 'Смена режима';
+$MESS['QWELP_SITE_SETTINGS_JS_SAVE_PREV_MODE'] = 'сохраняем данные предыдущего режима';
+$MESS['QWELP_SITE_SETTINGS_JS_NEW_MODE'] = 'новый режим';
+$MESS['QWELP_SITE_SETTINGS_JS_COMBINED_CHANGE'] = 'Объединенный change: загрузка файла + обновление полей';
+$MESS['QWELP_SITE_SETTINGS_JS_DELETE_FILE'] = 'Удаление файла';
+$MESS['QWELP_SITE_SETTINGS_JS_DELETE_ERROR'] = 'Delete error:';

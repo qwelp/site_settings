@@ -1,0 +1,13 @@
+<?php
+$MESS['QWELP_SITE_SETTINGS_UPLOAD_DISABLE_STAT'] = 'Отключаем статистику и проверки прав';
+$MESS['QWELP_SITE_SETTINGS_UPLOAD_INCLUDE_D7'] = 'Подключаем ядро D7';
+$MESS['QWELP_SITE_SETTINGS_UPLOAD_CHECK_FILE'] = 'Проверяем наличие загруженного файла';
+$MESS['QWELP_SITE_SETTINGS_UPLOAD_FILE_NOT_SENT'] = 'Файл не передан';
+$MESS['QWELP_SITE_SETTINGS_UPLOAD_SAVE_ORIGINAL'] = 'Сохраняем оригинал';
+$MESS['QWELP_SITE_SETTINGS_UPLOAD_SAVE_ERROR'] = 'Не удалось сохранить файл';
+$MESS['QWELP_SITE_SETTINGS_UPLOAD_GENERATE_PREVIEW'] = 'Генерируем превью 100×100';
+$MESS['QWELP_SITE_SETTINGS_UPLOAD_PREVIEW_ERROR'] = 'Не удалось создать превью';
+$MESS['QWELP_SITE_SETTINGS_UPLOAD_RETURN_JSON'] = 'Возвращаем JSON с ID и URL миниатюры';
+$MESS['QWELP_SITE_SETTINGS_UPLOAD_SUCCESS'] = 'success';
+$MESS['QWELP_SITE_SETTINGS_UPLOAD_ERROR'] = 'error';
+$MESS['QWELP_SITE_SETTINGS_UPLOAD_MESSAGE'] = 'message';
