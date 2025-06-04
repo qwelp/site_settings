@@ -81,10 +81,13 @@
         function getCurrentRows() {
             return Array.from(elementsContainer.children).map(row => {
                 const colorInput = row.querySelector('input[type="color"]');
+                const valueInput = row.querySelector(`input[placeholder="${OPTIONS_CONTROL_MESSAGES.VALUE}"]`);
+                const labelInput = row.querySelector(`input[placeholder="${OPTIONS_CONTROL_MESSAGES.LABEL}"]`);
+                const fileInput  = row.querySelector(`input[placeholder="${OPTIONS_CONTROL_MESSAGES.PATH_TO_FILE}"]`);
                 return {
-                    value:    colorInput ? colorInput.value : row.querySelector(`input[placeholder="${OPTIONS_CONTROL_MESSAGES.VALUE}"]`).value,
-                    label:    row.querySelector(`input[placeholder="${OPTIONS_CONTROL_MESSAGES.LABEL}"]`).value,
-                    pathFile: row.querySelector(`input[placeholder="${OPTIONS_CONTROL_MESSAGES.PATH_TO_FILE}"]`)?.value || null,
+                    value:    colorInput ? colorInput.value : (valueInput ? valueInput.value : ''),
+                    label:    labelInput ? labelInput.value : '',
+                    pathFile: fileInput ? fileInput.value : null,
                     fileId:   row.dataset.fileId ? parseInt(row.dataset.fileId, 10) : null
                 };
             });
