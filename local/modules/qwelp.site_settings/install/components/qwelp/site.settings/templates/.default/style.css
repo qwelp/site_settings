@@ -39,6 +39,7 @@
     transition: opacity var(--site-settings-transition-speed);
     opacity: 0;
 }
+
 .settings-overlay.active {
     display: flex;
     opacity: 1;
