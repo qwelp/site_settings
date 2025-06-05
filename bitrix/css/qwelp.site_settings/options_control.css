@@ -1,0 +1,325 @@
+/**
+ * Стили для интерактивного контрола управления вариантами значений
+ */
+
+/* Основной контейнер */
+.settings-values-property {
+    width: min-content;
+    font-family: Arial, sans-serif;
+}
+
+/* Список значений */
+.settings-values-list {
+    background-color: #f5f9f9;
+}
+
+/* Элемент списка */
+.settings-values-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border: 1px solid #dce7ed;
+    border-radius: 3px;
+}
+
+.settings-values-property .btn-delete-image.adm-btn.adm-btn-delete {
+    width: 32px;
+}
+
+.settings-values-property .btn-delete-image.adm-btn.adm-btn-delete:before {
+    margin: 3px 0 0 11px;
+}
+
+.settings-values-property .btn-delete.adm-btn.adm-btn-delete:before {
+    margin: 3px 0 0 3px;
+}
+
+/* Явно фиксируем паддинги как в нормальном состоянии */
+.settings-values-property .btn-add-option.adm-btn.adm-btn-save {
+    padding: 4px 12px;      /* подставьте здесь ваши обычные значения */
+    position: relative;     /* чтобы top:0 работал */
+    top: 0;
+    transition: none;       /* отключаем анимацию */
+}
+
+/* При клике оставляем точно такие же паддинги и не смещаем кнопку */
+.settings-values-property .btn-add-option.adm-btn.adm-btn-save:active {
+    padding: 4px 12px;      /* точно такие же, как выше */
+    top: 0 !important;      /* сбрасываем любое смещение */
+    transform: none !important;
+    box-shadow: none !important;
+    height: 29px !important;
+}
+
+.settings-values-property .btn-move-up.adm-btn.adm-btn-text,
+.settings-values-property .btn-move-down.adm-btn.adm-btn-text {
+    width: 32px;
+}
+
+.settings-values-item:last-child {
+    margin-bottom: 0;
+}
+
+/* Поля ввода */
+.settings-values-item input {
+    flex: 1;
+    margin-right: 8px;
+    padding: 6px 8px;
+    border: 1px solid #c4ced2;
+    border-radius: 3px;
+    font-size: 14px;
+}
+
+.settings-values-item input:focus {
+    border-color: #2675d7;
+    outline: none;
+    box-shadow: 0 0 3px rgba(38, 117, 215, 0.3);
+}
+
+.settings-values-item input::placeholder {
+    color: #aaa;
+}
+
+/* Кнопки управления */
+.btn-move-up,
+.btn-move-down,
+.btn-delete {
+    margin: 0 3px;
+    padding: 3px 8px;
+    background-color: #f5f9f9;
+    border: 1px solid #c4ced2;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.btn-move-up:hover,
+.btn-move-down:hover {
+    background-color: #e0e8ea;
+}
+
+.btn-delete {
+    color: #e53935;
+}
+
+.btn-delete:hover {
+    background-color: #ffebee;
+}
+
+/* Кнопка добавления */
+.btn-add-option {
+    margin-top: 10px;
+    padding: 8px 15px;
+    background-color: #86ad00;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.btn-add-option:hover {
+    background-color: #9ec710;
+}
+
+/* Поддержка radioImage */
+.image-upload-container {
+    display: flex;
+    flex-direction: column;
+    flex: 2;
+    margin-right: 8px;
+}
+
+.image-file-input {
+    margin-bottom: 5px;
+}
+
+.image-preview-wrapper {
+    margin-top: 5px;
+    min-height: 30px;
+}
+
+.image-preview-container {
+    position: relative;
+    display: inline-block;
+    margin-top: 5px;
+}
+
+.image-preview {
+    max-width: 100px;
+    max-height: 100px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 2px;
+}
+
+.btn-delete-image {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border-radius: 50%;
+    background-color: #e53935;
+    color: white;
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.btn-delete-image:hover {
+    background-color: #c62828;
+}
+
+/* Межстрочный отступ между всеми опциями */
+.settings-values-list {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Чтобы на одной строке инпуты и кнопки выравнивались ровно */
+.settings-values-item {
+    display: flex;
+    align-items: center;
+    column-gap: 6px;
+}
+
+/* Стиль для селекта */
+.settings-values-property select[data-role="control-type"] {
+    margin-bottom: 10px;
+    padding: 6px 10px;
+    border: 1px solid #c4ced2;
+    border-radius: 3px;
+    font-size: 14px;
+}
+
+/* Скрытие списка и кнопки для checkbox */
+.settings-values-list[data-visible="false"],
+.btn-add-option[style*="display: none"] {
+    display: none !important;
+}
+
+.settings-values-property [data-role="control-type"] {
+    height: 33px !important;
+}
+
+.settings-values-property {
+    margin-bottom: 15px;
+}
+
+.settings-values-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding: 10px;
+    background: #fff;
+    border: 1px solid #ddd;
+}
+
+.settings-values-item input[type="text"] {
+    flex: 1;
+}
+
+.image-upload-container {
+    position: relative;
+    min-width: 100px;
+}
+
+.image-preview-wrapper {
+    margin-top: 5px;
+}
+
+.image-preview-container {
+    position: relative;
+    display: inline-block;
+}
+
+.image-preview {
+    max-width: 100px;
+    max-height: 100px;
+    border: 1px solid #ddd;
+}
+
+.btn-delete-image {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    padding: 0;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    font-size: 12px;
+    line-height: 1;
+}
+
+.btn-move-up,
+.btn-move-down,
+.btn-delete {
+    padding: 5px 10px;
+    margin-left: 5px;
+}
+
+.settings-values-list[data-visible="false"] {
+    display: none;
+}
+
+/* Скрываем сам <input> */
+.option-input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* Базовый вид кнопки-лейбла */
+.option-label {
+    display: inline-block;
+    padding: 8px 16px;
+    margin: 0 4px;
+    border-radius: 6px;
+    background-color: #e2e8f0; /* светло-серый фон */
+    color: #4a5568;            /* тёмно-серый текст */
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* При наведении */
+.option-label:hover {
+    background-color: #cbd5e0;
+}
+
+/* При фокусе на скрытом инпуте – обводка лейбла */
+.option-input:focus + .option-label {
+    outline: 2px solid #3182ce;
+    outline-offset: 2px;
+}
+
+/* Выбранное состояние */
+.option-input:checked + .option-label {
+    background-color: #4299e1; /* синий фон */
+    color: #fff;               /* белый текст */
+}
+
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    .settings-values-item {
+        flex-wrap: wrap;
+    }
+
+    .settings-values-item input {
+        width: 100%;
+        margin-bottom: 5px;
+        margin-right: 0;
+    }
+
+    .settings-values-item button {
+        margin-top: 5px;
+    }
+}
