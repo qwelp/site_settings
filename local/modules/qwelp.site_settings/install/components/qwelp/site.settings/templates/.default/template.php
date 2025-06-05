@@ -157,6 +157,7 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
 
                                     <?php
                                     $type = $setting['type'];
+if ($type === '' && isset($setting['options']['color'])) {                                            $type = 'color';                                        }
                                     if ($type === 'checkbox'): ?>
                                         <label class="toggle-wrapper">
                                             <div class="toggle-relative">
@@ -309,6 +310,7 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
 
                                         <?php
                                         $type = $setting['type'];
+if ($type === '' && isset($setting['options']['color'])) {                                            $type = 'color';                                        }
                                         if ($type === 'checkbox'): ?>
                                             <label class="toggle-wrapper">
                                                 <div class="toggle-relative">
@@ -495,6 +497,7 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
 
                                                 <?php
                                                 $type = $setting['type'];
+if ($type === '' && isset($setting['options']['color'])) {                                            $type = 'color';                                        }
                                                 if ($type === 'checkbox'): ?>
                                                     <label class="toggle-wrapper">
                                                         <div class="toggle-relative">
@@ -647,6 +650,7 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
 
                                                     <?php
                                                     $type = $setting['type'];
+if ($type === '' && isset($setting['options']['color'])) {                                            $type = 'color';                                        }
                                                     if ($type === 'checkbox'): ?>
                                                         <label class="toggle-wrapper">
                                                             <div class="toggle-relative">
@@ -819,6 +823,7 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
 
                                                         <?php
                                                         $type = $setting['type'];
+if ($type === '' && isset($setting['options']['color'])) {                                            $type = 'color';                                        }
                                                         if ($type === 'checkbox'): ?>
                                                             <label class="toggle-wrapper">
                                                                 <div class="toggle-relative">
@@ -979,6 +984,7 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
 
                                                                 <?php
                                                                 $type = $setting['type'];
+if ($type === '' && isset($setting['options']['color'])) {                                            $type = 'color';                                        }
                                                                 if ($type === 'checkbox'): ?>
                                                                     <label class="toggle-wrapper">
                                                                         <div class="toggle-relative">
