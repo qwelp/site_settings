@@ -295,7 +295,8 @@
     display: block;
     cursor: pointer;
 }
-.color-option-input:checked + .color-swatch {
+.color-option-input:checked + .color-swatch,
+.color-swatch.selected {
     border-color: var(--site-settings-primary-color);
 }
 

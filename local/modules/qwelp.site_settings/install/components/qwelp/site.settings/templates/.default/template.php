@@ -220,27 +220,16 @@ if ($type === '' && isset($setting['options']['color'])) {                      
                                         </div>
                                     <?php elseif ($type === 'color'): ?>
                                         <?php $colorOpts = $setting['options']['color'] ?? ($setting['options'] ?? []); ?>
-                                        <?php if (!empty($colorOpts) && is_array($colorOpts)): ?>
-                                            <div class="color-options-wrapper">
+                                        <div class="color-options-wrapper" data-color-input="setting_<?= htmlspecialcharsbx($setting['code']) ?>">
+                                            <?php if (!empty($colorOpts) && is_array($colorOpts)): ?>
                                                 <?php foreach ($colorOpts as $opt): ?>
                                                     <?php
                                                     $val = htmlspecialcharsbx($opt['value'] ?? '');
                                                     $lab = htmlspecialcharsbx($opt['label'] ?? $val);
-                                                    $oid = 'setting_' . htmlspecialcharsbx($setting['code']) . '_' . preg_replace('/[^a-z0-9_]/i', '_', $val);
                                                     ?>
-                                                    <label class="color-option" title="<?= $lab ?>">
-                                                        <input
-                                                                type="radio"
-                                                                id="<?= $oid ?>"
-                                                                name="<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                                value="<?= $val ?>"
-                                                                class="color-option-input"
-                                                        >
-                                                        <span class="color-swatch" style="background-color: <?= $val ?>;"></span>
-                                                    </label>
+                                                    <span class="color-swatch" data-color="<?= $val ?>" title="<?= $lab ?>" style="background-color: <?= $val ?>;"></span>
                                                 <?php endforeach; ?>
-                                            </div>
-                                        <?php else: ?>
+                                            <?php endif; ?>
                                             <input
                                                     type="color"
                                                     name="<?= htmlspecialcharsbx($setting['code']) ?>"
@@ -248,7 +237,7 @@ if ($type === '' && isset($setting['options']['color'])) {                      
                                                     value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>"
                                                     class="color-picker-input"
                                             >
-                                        <?php endif; ?>
+                                        </div>
                                     <?php elseif ($type === 'radioImage' && is_array($setting['options'])): ?>
                                         <div class="radio-image-options-wrapper">
                                             <?php foreach ($setting['options'] as $opt): ?>
@@ -379,27 +368,16 @@ if ($type === '' && isset($setting['options']['color'])) {                      
                                             </div>
                                         <?php elseif ($type === 'color'): ?>
                                             <?php $colorOpts = $setting['options']['color'] ?? ($setting['options'] ?? []); ?>
-                                            <?php if (!empty($colorOpts) && is_array($colorOpts)): ?>
-                                                <div class="color-options-wrapper">
+                                            <div class="color-options-wrapper" data-color-input="setting_<?= htmlspecialcharsbx($setting['code']) ?>">
+                                                <?php if (!empty($colorOpts) && is_array($colorOpts)): ?>
                                                     <?php foreach ($colorOpts as $opt): ?>
                                                         <?php
                                                         $val = htmlspecialcharsbx($opt['value'] ?? '');
                                                         $lab = htmlspecialcharsbx($opt['label'] ?? $val);
-                                                        $oid = 'setting_' . htmlspecialcharsbx($setting['code']) . '_' . preg_replace('/[^a-z0-9_]/i', '_', $val);
                                                         ?>
-                                                        <label class="color-option" title="<?= $lab ?>">
-                                                            <input
-                                                                    type="radio"
-                                                                    id="<?= $oid ?>"
-                                                                    name="<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                                    value="<?= $val ?>"
-                                                                    class="color-option-input"
-                                                            >
-                                                            <span class="color-swatch" style="background-color: <?= $val ?>;"></span>
-                                                        </label>
+                                                        <span class="color-swatch" data-color="<?= $val ?>" title="<?= $lab ?>" style="background-color: <?= $val ?>;"></span>
                                                     <?php endforeach; ?>
-                                                </div>
-                                            <?php else: ?>
+                                                <?php endif; ?>
                                                 <input
                                                         type="color"
                                                         name="<?= htmlspecialcharsbx($setting['code']) ?>"
@@ -407,7 +385,7 @@ if ($type === '' && isset($setting['options']['color'])) {                      
                                                         value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>"
                                                         class="color-picker-input"
                                                 >
-                                            <?php endif; ?>
+                                            </div>
                                         <?php elseif ($type === 'radioImage' && is_array($setting['options'])): ?>
                                             <div class="radio-image-options-wrapper">
                                                 <?php foreach ($setting['options'] as $opt): ?>
@@ -572,27 +550,16 @@ if ($type === '' && isset($setting['options']['color'])) {                      
                                                     </div>
                                                 <?php elseif ($type === 'color'): ?>
                                                     <?php $colorOpts = $setting['options']['color'] ?? ($setting['options'] ?? []); ?>
-                                                    <?php if (!empty($colorOpts) && is_array($colorOpts)): ?>
-                                                        <div class="color-options-wrapper">
+                                                    <div class="color-options-wrapper" data-color-input="setting_<?= htmlspecialcharsbx($setting['code']) ?>">
+                                                        <?php if (!empty($colorOpts) && is_array($colorOpts)): ?>
                                                             <?php foreach ($colorOpts as $opt): ?>
                                                                 <?php
                                                                 $val = htmlspecialcharsbx($opt['value'] ?? '');
                                                                 $lab = htmlspecialcharsbx($opt['label'] ?? $val);
-                                                                $oid = 'setting_' . htmlspecialcharsbx($setting['code']) . '_' . preg_replace('/[^a-z0-9_]/i', '_', $val);
                                                                 ?>
-                                                                <label class="color-option" title="<?= $lab ?>">
-                                                                    <input
-                                                                            type="radio"
-                                                                            id="<?= $oid ?>"
-                                                                            name="<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                                            value="<?= $val ?>"
-                                                                            class="color-option-input"
-                                                                    >
-                                                                    <span class="color-swatch" style="background-color: <?= $val ?>;"></span>
-                                                                </label>
+                                                                <span class="color-swatch" data-color="<?= $val ?>" title="<?= $lab ?>" style="background-color: <?= $val ?>;"></span>
                                                             <?php endforeach; ?>
-                                                        </div>
-                                                    <?php else: ?>
+                                                        <?php endif; ?>
                                                         <input
                                                                 type="color"
                                                                 name="<?= htmlspecialcharsbx($setting['code']) ?>"
@@ -600,7 +567,7 @@ if ($type === '' && isset($setting['options']['color'])) {                      
                                                                 value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>"
                                                                 class="color-picker-input"
                                                         >
-                                                    <?php endif; ?>
+                                                    </div>
                                                 <?php elseif ($type === 'radioImage' && is_array($setting['options'])): ?>
                                                     <div class="radio-image-options-wrapper">
                                                         <?php foreach ($setting['options'] as $opt): ?>
@@ -730,36 +697,25 @@ if ($type === '' && isset($setting['options']['color'])) {                      
                                                             </select>
                                                         </div>
                                                     <?php elseif ($type === 'color'): ?>
-                                                        <?php $colorOpts = $setting['options']['color'] ?? ($setting['options'] ?? []); ?>
+                                                    <?php $colorOpts = $setting['options']['color'] ?? ($setting['options'] ?? []); ?>
+                                                    <div class="color-options-wrapper" data-color-input="setting_<?= htmlspecialcharsbx($setting['code']) ?>">
                                                         <?php if (!empty($colorOpts) && is_array($colorOpts)): ?>
-                                                            <div class="color-options-wrapper">
-                                                                <?php foreach ($colorOpts as $opt): ?>
-                                                                    <?php
-                                                                    $val = htmlspecialcharsbx($opt['value'] ?? '');
-                                                                    $lab = htmlspecialcharsbx($opt['label'] ?? $val);
-                                                                    $oid = 'setting_' . htmlspecialcharsbx($setting['code']) . '_' . preg_replace('/[^a-z0-9_]/i', '_', $val);
-                                                                    ?>
-                                                                    <label class="color-option" title="<?= $lab ?>">
-                                                                        <input
-                                                                                type="radio"
-                                                                                id="<?= $oid ?>"
-                                                                                name="<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                                                value="<?= $val ?>"
-                                                                                class="color-option-input"
-                                                                        >
-                                                                        <span class="color-swatch" style="background-color: <?= $val ?>;"></span>
-                                                                    </label>
-                                                                <?php endforeach; ?>
-                                                            </div>
-                                                        <?php else: ?>
-                                                            <input
-                                                                    type="color"
-                                                                    name="<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                                    id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                                    value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>"
-                                                                    class="color-picker-input"
-                                                            >
+                                                            <?php foreach ($colorOpts as $opt): ?>
+                                                                <?php
+                                                                $val = htmlspecialcharsbx($opt['value'] ?? '');
+                                                                $lab = htmlspecialcharsbx($opt['label'] ?? $val);
+                                                                ?>
+                                                                <span class="color-swatch" data-color="<?= $val ?>" title="<?= $lab ?>" style="background-color: <?= $val ?>;"></span>
+                                                            <?php endforeach; ?>
                                                         <?php endif; ?>
+                                                        <input
+                                                                type="color"
+                                                                name="<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                                id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                                value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>"
+                                                                class="color-picker-input"
+                                                        >
+                                                    </div>
                                                     <?php elseif ($type === 'radioImage' && is_array($setting['options'])): ?>
                                                         <div class="radio-image-options-wrapper">
                                                             <?php foreach ($setting['options'] as $opt): ?>
@@ -910,27 +866,16 @@ if ($type === '' && isset($setting['options']['color'])) {                      
                                                             </div>
                                                         <?php elseif ($type === 'color'): ?>
                                                             <?php $colorOpts = $setting['options']['color'] ?? ($setting['options'] ?? []); ?>
-                                                            <?php if (!empty($colorOpts) && is_array($colorOpts)): ?>
-                                                                <div class="color-options-wrapper">
+                                                            <div class="color-options-wrapper" data-color-input="setting_<?= htmlspecialcharsbx($setting['code']) ?>">
+                                                                <?php if (!empty($colorOpts) && is_array($colorOpts)): ?>
                                                                     <?php foreach ($colorOpts as $opt): ?>
                                                                         <?php
                                                                         $val = htmlspecialcharsbx($opt['value'] ?? '');
                                                                         $lab = htmlspecialcharsbx($opt['label'] ?? $val);
-                                                                        $oid = 'setting_' . htmlspecialcharsbx($setting['code']) . '_' . preg_replace('/[^a-z0-9_]/i', '_', $val);
                                                                         ?>
-                                                                        <label class="color-option" title="<?= $lab ?>">
-                                                                            <input
-                                                                                    type="radio"
-                                                                                    id="<?= $oid ?>"
-                                                                                    name="<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                                                    value="<?= $val ?>"
-                                                                                    class="color-option-input"
-                                                                            >
-                                                                            <span class="color-swatch" style="background-color: <?= $val ?>;"></span>
-                                                                        </label>
+                                                                        <span class="color-swatch" data-color="<?= $val ?>" title="<?= $lab ?>" style="background-color: <?= $val ?>;"></span>
                                                                     <?php endforeach; ?>
-                                                                </div>
-                                                            <?php else: ?>
+                                                                <?php endif; ?>
                                                                 <input
                                                                         type="color"
                                                                         name="<?= htmlspecialcharsbx($setting['code']) ?>"
@@ -938,7 +883,7 @@ if ($type === '' && isset($setting['options']['color'])) {                      
                                                                         value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>"
                                                                         class="color-picker-input"
                                                                 >
-                                                            <?php endif; ?>
+                                                            </div>
                                                         <?php elseif ($type === 'radioImage' && is_array($setting['options'])): ?>
                                                             <div class="radio-image-options-wrapper">
                                                                 <?php foreach ($setting['options'] as $opt): ?>
@@ -1078,24 +1023,21 @@ if ($type === '' && isset($setting['options']['color'])) {                      
                                                                 <?php elseif ($type === 'color'): ?>
                                                                     <?php $colorOpts = $setting['options']['color'] ?? ($setting['options'] ?? []); ?>
                                                                     <?php if (!empty($colorOpts) && is_array($colorOpts)): ?>
-                                                                        <div class="color-options-wrapper">
+                                                                        <div class="color-options-wrapper" data-color-input="setting_<?= htmlspecialcharsbx($setting['code']) ?>">
                                                                             <?php foreach ($colorOpts as $opt): ?>
                                                                                 <?php
                                                                                 $val = htmlspecialcharsbx($opt['value'] ?? '');
                                                                                 $lab = htmlspecialcharsbx($opt['label'] ?? $val);
-                                                                                $oid = 'setting_' . htmlspecialcharsbx($setting['code']) . '_' . preg_replace('/[^a-z0-9_]/i', '_', $val);
                                                                                 ?>
-                                                                                <label class="color-option" title="<?= $lab ?>">
-                                                                                    <input
-                                                                                            type="radio"
-                                                                                            id="<?= $oid ?>"
-                                                                                            name="<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                                                            value="<?= $val ?>"
-                                                                                            class="color-option-input"
-                                                                                    >
-                                                                                    <span class="color-swatch" style="background-color: <?= $val ?>;"></span>
-                                                                                </label>
+                                                                                <span class="color-swatch" data-color="<?= $val ?>" title="<?= $lab ?>" style="background-color: <?= $val ?>;"></span>
                                                                             <?php endforeach; ?>
+                                                                            <input
+                                                                                    type="color"
+                                                                                    name="<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                                                    id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                                                    value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>"
+                                                                                    class="color-picker-input"
+                                                                            >
                                                                         </div>
                                                                     <?php else: ?>
                                                                         <input
