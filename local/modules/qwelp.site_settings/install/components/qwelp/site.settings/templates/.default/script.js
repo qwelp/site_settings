@@ -248,22 +248,29 @@ function resetSettings() {
 
 function initColorSwatches() {
     document.querySelectorAll('.color-options-wrapper').forEach(wrapper => {
-        const inputId = wrapper.dataset.colorInput;
-        const colorInput = document.getElementById(inputId);
+        const colorInput = wrapper.querySelector('.color-picker-input');
         if (!colorInput) return;
-        const swatches = wrapper.querySelectorAll('.color-swatch');
-        const update = () => {
-            const val = colorInput.value.toLowerCase();
-            swatches.forEach(s => s.classList.toggle('selected', s.dataset.color && s.dataset.color.toLowerCase() === val));
+        const hexInput = wrapper.querySelector('.color-hex-input');
+        const radios = wrapper.querySelectorAll('.color-option-input');
+
+        const applyValue = val => {
+            if (!val) return;
+            if (val[0] !== '#') val = '#' + val.replace(/[^0-9a-f]/gi, '').slice(0,6);
+            colorInput.value = val;
+            if (hexInput) hexInput.value = val;
+            radios.forEach(r => r.checked = r.value.toLowerCase() === val.toLowerCase());
         };
-        swatches.forEach(sw => {
-            sw.addEventListener('click', () => {
-                colorInput.value = sw.dataset.color;
-                update();
-            });
+
+        radios.forEach(r => {
+            r.addEventListener('change', () => applyValue(r.value));
         });
-        colorInput.addEventListener('input', update);
-        update();
+
+        colorInput.addEventListener('input', () => applyValue(colorInput.value));
+        if (hexInput) {
+            hexInput.addEventListener('input', () => applyValue(hexInput.value));
+        }
+
+        applyValue(colorInput.value);
     });
 }
 
