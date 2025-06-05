@@ -278,6 +278,27 @@
     cursor: pointer;
 }
 
+/* Группа радиокнопок для выбора цвета */
+.color-options-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.color-option-input {
+    display: none;
+}
+.color-swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--site-settings-border-color);
+    display: block;
+    cursor: pointer;
+}
+.color-option-input:checked + .color-swatch {
+    border-color: var(--site-settings-primary-color);
+}
+
 /* Картинки для радио */
 .radio-image-option {
     position: relative;
