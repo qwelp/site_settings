@@ -365,13 +365,25 @@ function initColorSwatches() {
         if (!colorInput) return;
         const hexInput = wrapper.querySelector('.color-hex-input');
         const radios = wrapper.querySelectorAll('.color-option-input');
+        const customRadio = wrapper.querySelector('.custom-color-radio');
+        const customSwatch = wrapper.querySelector('.custom-color-swatch');
 
         const applyValue = val => {
             if (!val) return;
             if (val[0] !== '#') val = '#' + val.replace(/[^0-9a-f]/gi, '').slice(0,6);
             colorInput.value = val;
             if (hexInput) hexInput.value = val;
-            radios.forEach(r => r.checked = r.value.toLowerCase() === val.toLowerCase());
+            let matched = false;
+            radios.forEach(r => {
+                const eq = r.value.toLowerCase() === val.toLowerCase();
+                r.checked = eq;
+                if (eq) matched = true;
+            });
+            if (customRadio) {
+                customRadio.value = val;
+                if (customSwatch) customSwatch.style.backgroundColor = val;
+                if (!matched) customRadio.checked = true;
+            }
         };
 
         radios.forEach(r => {
