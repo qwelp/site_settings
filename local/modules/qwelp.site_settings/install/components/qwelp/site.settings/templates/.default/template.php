@@ -137,10 +137,16 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
                         <!-- 1) Level 1 (видимые) -->
                         <?php if (!empty($visibleLevel1)): ?>
                             <?php foreach ($visibleLevel1 as $setting): ?>
-                                <?php $width = qwelpSiteSettingsWidth($setting['percent'] ?? null); ?>
+                                <?php
+                                $width     = qwelpSiteSettingsWidth($setting['percent'] ?? null);
+                                $typeData  = $setting['type'];
+                                if ($typeData === '' && isset($setting['options']['color'])) {
+                                    $typeData = 'color';
+                                }
+                                ?>
                                 <div class="setting-item"
                                      data-setting-code="<?= htmlspecialcharsbx($setting['code']) ?>"
-                                     data-setting-type="<?= htmlspecialcharsbx($setting['type']) ?>"
+                                     data-setting-type="<?= htmlspecialcharsbx($typeData) ?>"
                                      style="flex-basis: <?= htmlspecialcharsbx($width) ?>; max-width: <?= htmlspecialcharsbx($width) ?>;"
                                 >
                                     <div class="setting-label">
@@ -290,10 +296,16 @@ if ($type === '' && isset($setting['options']['color'])) {                      
                             </div>
                             <div id="hidden-level1-<?= htmlspecialcharsbx($sec1['id']) ?>" class="collapse-content">
                                 <?php foreach ($hiddenLevel1 as $setting): ?>
-                                    <?php $width = qwelpSiteSettingsWidth($setting['percent'] ?? null); ?>
+                                    <?php
+                                    $width    = qwelpSiteSettingsWidth($setting['percent'] ?? null);
+                                    $typeData = $setting['type'];
+                                    if ($typeData === '' && isset($setting['options']['color'])) {
+                                        $typeData = 'color';
+                                    }
+                                    ?>
                                     <div class="hidden-setting-item"
                                          data-setting-code="<?= htmlspecialcharsbx($setting['code']) ?>"
-                                         data-setting-type="<?= htmlspecialcharsbx($setting['type']) ?>"
+                                         data-setting-type="<?= htmlspecialcharsbx($typeData) ?>"
                                          style="flex-basis: <?= htmlspecialcharsbx($width) ?>; max-width: <?= htmlspecialcharsbx($width) ?>;"
                                     >
                                         <div class="setting-label">
@@ -477,10 +489,16 @@ if ($type === '' && isset($setting['options']['color'])) {                      
                                     <!-- 2.1) Настройки второго уровня (видимые) -->
                                     <?php if (!empty($visibleLevel2)): ?>
                                         <?php foreach ($visibleLevel2 as $setting): ?>
-                                            <?php $width = qwelpSiteSettingsWidth($setting['percent'] ?? null); ?>
+                                            <?php
+                                            $width    = qwelpSiteSettingsWidth($setting['percent'] ?? null);
+                                            $typeData = $setting['type'];
+                                            if ($typeData === '' && isset($setting['options']['color'])) {
+                                                $typeData = 'color';
+                                            }
+                                            ?>
                                             <div class="setting-item"
                                                  data-setting-code="<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                 data-setting-type="<?= htmlspecialcharsbx($setting['type']) ?>"
+                                                 data-setting-type="<?= htmlspecialcharsbx($typeData) ?>"
                                                  style="flex-basis: <?= htmlspecialcharsbx($width) ?>; max-width: <?= htmlspecialcharsbx($width) ?>;"
                                             >
                                                 <div class="setting-label">
@@ -630,10 +648,16 @@ if ($type === '' && isset($setting['options']['color'])) {                      
                                         </div>
                                         <div id="hidden-level2-<?= htmlspecialcharsbx($sec2['id']) ?>" class="collapse-content">
                                             <?php foreach ($hiddenLevel2 as $setting): ?>
-                                                <?php $width = qwelpSiteSettingsWidth($setting['percent'] ?? null); ?>
+                                                <?php
+                                                $width    = qwelpSiteSettingsWidth($setting['percent'] ?? null);
+                                                $typeData = $setting['type'];
+                                                if ($typeData === '' && isset($setting['options']['color'])) {
+                                                    $typeData = 'color';
+                                                }
+                                                ?>
                                                 <div class="hidden-setting-item"
                                                      data-setting-code="<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                     data-setting-type="<?= htmlspecialcharsbx($setting['type']) ?>"
+                                                     data-setting-type="<?= htmlspecialcharsbx($typeData) ?>"
                                                      style="flex-basis: <?= htmlspecialcharsbx($width) ?>; max-width: <?= htmlspecialcharsbx($width) ?>;"
                                                 >
                                                     <div class="setting-label">
@@ -803,10 +827,16 @@ if ($type === '' && isset($setting['options']['color'])) {                      
 
                                             <?php if (!empty($sec3['settings'])): ?>
                                                 <?php foreach ($sec3['settings'] as $setting): ?>
-                                                    <?php $width = qwelpSiteSettingsWidth($setting['percent'] ?? null); ?>
+                                                    <?php
+                                                    $width    = qwelpSiteSettingsWidth($setting['percent'] ?? null);
+                                                    $typeData = $setting['type'];
+                                                    if ($typeData === '' && isset($setting['options']['color'])) {
+                                                        $typeData = 'color';
+                                                    }
+                                                    ?>
                                                     <div class="setting-item"
                                                          data-setting-code="<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                         data-setting-type="<?= htmlspecialcharsbx($setting['type']) ?>"
+                                                         data-setting-type="<?= htmlspecialcharsbx($typeData) ?>"
                                                          style="flex-basis: <?= htmlspecialcharsbx($width) ?>; max-width: <?= htmlspecialcharsbx($width) ?>;"
                                                     >
                                                         <div class="setting-label">
@@ -964,10 +994,16 @@ if ($type === '' && isset($setting['options']['color'])) {                      
                                                     </div>
                                                     <?php if (!empty($sec3['settings'])): ?>
                                                         <?php foreach ($sec3['settings'] as $setting): ?>
-                                                            <?php $width = qwelpSiteSettingsWidth($setting['percent'] ?? null); ?>
+                                                            <?php
+                                                            $width    = qwelpSiteSettingsWidth($setting['percent'] ?? null);
+                                                            $typeData = $setting['type'];
+                                                            if ($typeData === '' && isset($setting['options']['color'])) {
+                                                                $typeData = 'color';
+                                                            }
+                                                            ?>
                                                             <div class="hidden-setting-item"
                                                                  data-setting-code="<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                                 data-setting-type="<?= htmlspecialcharsbx($setting['type']) ?>"
+                                                                 data-setting-type="<?= htmlspecialcharsbx($typeData) ?>"
                                                                  style="flex-basis: <?= htmlspecialcharsbx($width) ?>; max-width: <?= htmlspecialcharsbx($width) ?>;"
                                                             >
                                                                 <div class="setting-label">
