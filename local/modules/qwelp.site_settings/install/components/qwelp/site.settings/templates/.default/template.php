@@ -211,6 +211,14 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
                                                 <?php endforeach; ?>
                                             </select>
                                         </div>
+                                    <?php elseif ($type === 'color'): ?>
+                                        <input
+                                                type="color"
+                                                name="<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>"
+                                                class="color-picker-input"
+                                        >
                                     <?php elseif ($type === 'radioImage' && is_array($setting['options'])): ?>
                                         <div class="radio-image-options-wrapper">
                                             <?php foreach ($setting['options'] as $opt): ?>
@@ -332,6 +340,14 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
                                                     <?php endforeach; ?>
                                                 </select>
                                             </div>
+                                        <?php elseif ($type === 'color'): ?>
+                                            <input
+                                                    type="color"
+                                                    name="<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                    id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                    value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>"
+                                                    class="color-picker-input"
+                                            >
                                         <?php elseif ($type === 'radioImage' && is_array($setting['options'])): ?>
                                             <div class="radio-image-options-wrapper">
                                                 <?php foreach ($setting['options'] as $opt): ?>
@@ -487,6 +503,14 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
                                                             <?php endforeach; ?>
                                                         </select>
                                                     </div>
+                                                <?php elseif ($type === 'color'): ?>
+                                                    <input
+                                                            type="color"
+                                                            name="<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                            id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                            value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>"
+                                                            class="color-picker-input"
+                                                    >
                                                 <?php elseif ($type === 'radioImage' && is_array($setting['options'])): ?>
                                                     <div class="radio-image-options-wrapper">
                                                         <?php foreach ($setting['options'] as $opt): ?>
@@ -608,6 +632,14 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
                                                                 <?php endforeach; ?>
                                                             </select>
                                                         </div>
+                                                    <?php elseif ($type === 'color'): ?>
+                                                        <input
+                                                                type="color"
+                                                                name="<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                                id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                                value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>"
+                                                                class="color-picker-input"
+                                                        >
                                                     <?php elseif ($type === 'radioImage' && is_array($setting['options'])): ?>
                                                         <div class="radio-image-options-wrapper">
                                                             <?php foreach ($setting['options'] as $opt): ?>
@@ -749,6 +781,14 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
                                                                     <?php endforeach; ?>
                                                                 </select>
                                                             </div>
+                                                        <?php elseif ($type === 'color'): ?>
+                                                            <input
+                                                                    type="color"
+                                                                    name="<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                                    id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                                    value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>"
+                                                                    class="color-picker-input"
+                                                            >
                                                         <?php elseif ($type === 'radioImage' && is_array($setting['options'])): ?>
                                                             <div class="radio-image-options-wrapper">
                                                                 <?php foreach ($setting['options'] as $opt): ?>
@@ -878,6 +918,14 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
                                                                             <?php endforeach; ?>
                                                                         </select>
                                                                     </div>
+                                                                <?php elseif ($type === 'color'): ?>
+                                                                    <input
+                                                                            type="color"
+                                                                            name="<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                                            id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                                            value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>"
+                                                                            class="color-picker-input"
+                                                                    >
                                                                 <?php elseif ($type === 'radioImage' && is_array($setting['options'])): ?>
                                                                     <div class="radio-image-options-wrapper">
                                                                         <?php foreach ($setting['options'] as $opt): ?>

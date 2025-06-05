@@ -268,6 +268,15 @@
     box-shadow: 0 0 0 2px rgba(74, 134, 232, 0.2);
 }
 
+/* Поле выбора цвета в настройках */
+.color-picker-input {
+    width: 40px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid var(--site-settings-border-color);
+    border-radius: 4px;
+}
+
 /* Картинки для радио */
 .radio-image-option {
     position: relative;
