@@ -83,10 +83,12 @@
 /* Поле выбора цвета */
 .settings-form__color {
     margin-right: 8px;
-    width: 40px;
-    height: 32px;
+    width: 24px;
+    height: 24px;
     padding: 0;
     border: none;
+    border-radius: 50%;
+    cursor: pointer;
 }
 
 /* Кнопки управления */

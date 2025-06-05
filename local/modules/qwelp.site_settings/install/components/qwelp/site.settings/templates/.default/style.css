@@ -270,11 +270,12 @@
 
 /* Поле выбора цвета в настройках */
 .color-picker-input {
-    width: 40px;
-    height: 32px;
+    width: 24px;
+    height: 24px;
     padding: 0;
     border: 1px solid var(--site-settings-border-color);
-    border-radius: 4px;
+    border-radius: 50%;
+    cursor: pointer;
 }
 
 /* Картинки для радио */
