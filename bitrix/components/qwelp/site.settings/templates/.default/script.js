@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initSettingsPanel();
     initializeSettings();
     handleResponsive();
+    initColorSwatches();
     document.querySelector('.btn-apply')?.addEventListener('click', applySettings);
     document.querySelector('.btn-reset')?.addEventListener('click', resetSettings);
 
@@ -252,6 +253,11 @@ function updateSettingsUI() {
         if (sel) {
             sel.value = value;
         }
+        const col = document.querySelector(`input[type="color"][id="setting_${code}"]`);
+        if (col && typeof value === 'string') {
+            col.value = value;
+            col.dispatchEvent(new Event('input'));
+        }
     });
 }
 
@@ -266,6 +272,9 @@ function applySettings() {
                 } else if (setting.type === 'radio') {
                     const rd = document.querySelector(`input[name="${code}"]:checked`);
                     if (rd) currentSettings[code] = rd.value;
+                } else if (setting.type === 'color') {
+                    const col = document.querySelector(`input[type="color"][id="setting_${code}"]`);
+                    if (col) currentSettings[code] = col.value;
                 } else if (setting.type === 'select') {
                     const sel = document.querySelector(`select[name="${code}"]`);
                     if (sel) currentSettings[code] = sel.value;
@@ -283,6 +292,9 @@ function applySettings() {
                         } else if (setting.type === 'radio') {
                             const rd = document.querySelector(`input[name="${code}"]:checked`);
                             if (rd) currentSettings[code] = rd.value;
+                        } else if (setting.type === 'color') {
+                            const col = document.querySelector(`input[type="color"][id="setting_${code}"]`);
+                            if (col) currentSettings[code] = col.value;
                         } else if (setting.type === 'select') {
                             const sel = document.querySelector(`select[name="${code}"]`);
                             if (sel) currentSettings[code] = sel.value;
@@ -300,6 +312,9 @@ function applySettings() {
                                 } else if (setting.type === 'radio') {
                                     const rd = document.querySelector(`input[name="${code}"]:checked`);
                                     if (rd) currentSettings[code] = rd.value;
+                                } else if (setting.type === 'color') {
+                                    const col = document.querySelector(`input[type="color"][id="setting_${code}"]`);
+                                    if (col) currentSettings[code] = col.value;
                                 } else if (setting.type === 'select') {
                                     const sel = document.querySelector(`select[name="${code}"]`);
                                     if (sel) currentSettings[code] = sel.value;
@@ -342,6 +357,46 @@ function applySettings() {
 function resetSettings() {
     currentSettings = JSON.parse(JSON.stringify(originalSettings));
     updateSettingsUI();
+}
+
+function initColorSwatches() {
+    document.querySelectorAll('.color-options-wrapper').forEach(wrapper => {
+        const colorInput = wrapper.querySelector('.color-picker-input');
+        if (!colorInput) return;
+        const hexInput = wrapper.querySelector('.color-hex-input');
+        const radios = wrapper.querySelectorAll('.color-option-input');
+        const customRadio = wrapper.querySelector('.custom-color-radio');
+        const customSwatch = wrapper.querySelector('.custom-color-swatch');
+
+        const applyValue = val => {
+            if (!val) return;
+            if (val[0] !== '#') val = '#' + val.replace(/[^0-9a-f]/gi, '').slice(0,6);
+            colorInput.value = val;
+            if (hexInput) hexInput.value = val;
+            let matched = false;
+            radios.forEach(r => {
+                const eq = r.value.toLowerCase() === val.toLowerCase();
+                r.checked = eq;
+                if (eq) matched = true;
+            });
+            if (customRadio) {
+                customRadio.value = val;
+                if (customSwatch) customSwatch.style.backgroundColor = val;
+                if (!matched) customRadio.checked = true;
+            }
+        };
+
+        radios.forEach(r => {
+            r.addEventListener('change', () => applyValue(r.value));
+        });
+
+        colorInput.addEventListener('input', () => applyValue(colorInput.value));
+        if (hexInput) {
+            hexInput.addEventListener('input', () => applyValue(hexInput.value));
+        }
+
+        applyValue(colorInput.value);
+    });
 }
 
 function handleResponsive() {

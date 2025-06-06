@@ -268,6 +268,63 @@
     box-shadow: 0 0 0 2px rgba(74, 134, 232, 0.2);
 }
 
+/* Поле выбора цвета в настройках */
+.color-picker-input {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 1px solid var(--site-settings-border-color);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+/* Группа радиокнопок для выбора цвета */
+.color-options-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.color-option-input {
+    display: none;
+}
+.color-swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--site-settings-border-color);
+    display: block;
+    cursor: pointer;
+}
+.color-option-input:checked + .color-swatch,
+.color-swatch.selected {
+    border-color: var(--site-settings-primary-color);
+}
+
+/* Блок для собственного цвета */
+.custom-color-block {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+.custom-color-label {
+    font-size: 0.75rem;
+    color: #333;
+    margin-right: 0.25rem;
+}
+.color-hex-input {
+    width: 80px;
+    padding: 4px 6px;
+    border: 1px solid var(--site-settings-border-color);
+    border-radius: 4px;
+    font-family: monospace;
+}
+.color-hex-input:focus {
+    outline: none;
+    border-color: var(--site-settings-primary-color);
+    box-shadow: 0 0 0 2px rgba(74, 134, 232, 0.2);
+}
+
 /* Картинки для радио */
 .radio-image-option {
     position: relative;

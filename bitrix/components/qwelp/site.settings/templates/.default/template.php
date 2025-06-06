@@ -137,10 +137,16 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
                         <!-- 1) Level 1 (видимые) -->
                         <?php if (!empty($visibleLevel1)): ?>
                             <?php foreach ($visibleLevel1 as $setting): ?>
-                                <?php $width = qwelpSiteSettingsWidth($setting['percent'] ?? null); ?>
+                                <?php
+                                $width     = qwelpSiteSettingsWidth($setting['percent'] ?? null);
+                                $typeData  = $setting['type'];
+                                if ($typeData === '' && isset($setting['options']['color'])) {
+                                    $typeData = 'color';
+                                }
+                                ?>
                                 <div class="setting-item"
                                      data-setting-code="<?= htmlspecialcharsbx($setting['code']) ?>"
-                                     data-setting-type="<?= htmlspecialcharsbx($setting['type']) ?>"
+                                     data-setting-type="<?= htmlspecialcharsbx($typeData) ?>"
                                      style="flex-basis: <?= htmlspecialcharsbx($width) ?>; max-width: <?= htmlspecialcharsbx($width) ?>;"
                                 >
                                     <div class="setting-label">
@@ -157,6 +163,9 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
 
                                     <?php
                                     $type = $setting['type'];
+                                    if ($type === '' && isset($setting['options']['color'])) {
+                                        $type = 'color';
+                                    }
                                     if ($type === 'checkbox'): ?>
                                         <label class="toggle-wrapper">
                                             <div class="toggle-relative">
@@ -211,6 +220,36 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
                                                 <?php endforeach; ?>
                                             </select>
                                         </div>
+                                    <?php elseif ($type === 'color'): ?>
+                                        <?php $colorOpts = $setting['options']['color'] ?? ($setting['options'] ?? []); ?>
+                                        <div class="color-options-wrapper">
+                                            <?php if (!empty($colorOpts) && is_array($colorOpts)): ?>
+                                                <?php foreach ($colorOpts as $idx => $opt): ?>
+                                                    <?php
+                                                    $val = htmlspecialcharsbx($opt['value'] ?? '');
+                                                    $lab = htmlspecialcharsbx($opt['label'] ?? $val);
+                                                    $id  = 'setting_' . htmlspecialcharsbx($setting['code']) . '_' . $idx;
+                                                    ?>
+                                                    <label class="color-option" title="<?= $lab ?>">
+                                                        <input type="radio" id="<?= $id ?>" name="<?= htmlspecialcharsbx($setting['code']) ?>" value="<?= $val ?>" class="color-option-input">
+                                                        <span class="color-swatch" style="background-color: <?= $val ?>;"></span>
+                                                    </label>
+                                                <?php endforeach; ?>
+                                            <?php endif; ?>
+                                            <div class="custom-color-block">
+                                                <label class="color-option" title="<?= Loc::getMessage('QWELP_SITE_SETTINGS_CUSTOM_COLOR') ?>">
+                                                    <input type="radio" id="setting_<?= htmlspecialcharsbx($setting['code']) ?>_custom" name="<?= htmlspecialcharsbx($setting['code']) ?>" value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>" class="color-option-input custom-color-radio">
+                                                    <span class="color-swatch custom-color-swatch"></span>
+                                                </label>
+                                                <input type="text" class="color-hex-input" value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>">
+                                                <input
+                                                        type="color"
+                                                        id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                        value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>"
+                                                        class="color-picker-input"
+                                                >
+                                            </div>
+                                        </div>
                                     <?php elseif ($type === 'radioImage' && is_array($setting['options'])): ?>
                                         <div class="radio-image-options-wrapper">
                                             <?php foreach ($setting['options'] as $opt): ?>
@@ -258,10 +297,16 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
                             </div>
                             <div id="hidden-level1-<?= htmlspecialcharsbx($sec1['id']) ?>" class="collapse-content">
                                 <?php foreach ($hiddenLevel1 as $setting): ?>
-                                    <?php $width = qwelpSiteSettingsWidth($setting['percent'] ?? null); ?>
+                                    <?php
+                                    $width    = qwelpSiteSettingsWidth($setting['percent'] ?? null);
+                                    $typeData = $setting['type'];
+                                    if ($typeData === '' && isset($setting['options']['color'])) {
+                                        $typeData = 'color';
+                                    }
+                                    ?>
                                     <div class="hidden-setting-item"
                                          data-setting-code="<?= htmlspecialcharsbx($setting['code']) ?>"
-                                         data-setting-type="<?= htmlspecialcharsbx($setting['type']) ?>"
+                                         data-setting-type="<?= htmlspecialcharsbx($typeData) ?>"
                                          style="flex-basis: <?= htmlspecialcharsbx($width) ?>; max-width: <?= htmlspecialcharsbx($width) ?>;"
                                     >
                                         <div class="setting-label">
@@ -278,6 +323,9 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
 
                                         <?php
                                         $type = $setting['type'];
+                                        if ($type === '' && isset($setting['options']['color'])) {
+                                            $type = 'color';
+                                        }
                                         if ($type === 'checkbox'): ?>
                                             <label class="toggle-wrapper">
                                                 <div class="toggle-relative">
@@ -331,6 +379,36 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
                                                         </option>
                                                     <?php endforeach; ?>
                                                 </select>
+                                            </div>
+                                        <?php elseif ($type === 'color'): ?>
+                                            <?php $colorOpts = $setting['options']['color'] ?? ($setting['options'] ?? []); ?>
+                                            <div class="color-options-wrapper">
+                                                <?php if (!empty($colorOpts) && is_array($colorOpts)): ?>
+                                                    <?php foreach ($colorOpts as $idx => $opt): ?>
+                                                        <?php
+                                                        $val = htmlspecialcharsbx($opt['value'] ?? '');
+                                                        $lab = htmlspecialcharsbx($opt['label'] ?? $val);
+                                                        $id  = 'setting_' . htmlspecialcharsbx($setting['code']) . '_' . $idx;
+                                                        ?>
+                                                        <label class="color-option" title="<?= $lab ?>">
+                                                            <input type="radio" id="<?= $id ?>" name="<?= htmlspecialcharsbx($setting['code']) ?>" value="<?= $val ?>" class="color-option-input">
+                                                            <span class="color-swatch" style="background-color: <?= $val ?>;"></span>
+                                                        </label>
+                                                    <?php endforeach; ?>
+                                                <?php endif; ?>
+                                                <div class="custom-color-block">
+                                                    <label class="color-option" title="<?= Loc::getMessage('QWELP_SITE_SETTINGS_CUSTOM_COLOR') ?>">
+                                                        <input type="radio" id="setting_<?= htmlspecialcharsbx($setting['code']) ?>_custom" name="<?= htmlspecialcharsbx($setting['code']) ?>" value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>" class="color-option-input custom-color-radio">
+                                                        <span class="color-swatch custom-color-swatch"></span>
+                                                    </label>
+                                                    <input type="text" class="color-hex-input" value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>">
+                                                    <input
+                                                            type="color"
+                                                            id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                            value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>"
+                                                            class="color-picker-input"
+                                                    >
+                                                </div>
                                             </div>
                                         <?php elseif ($type === 'radioImage' && is_array($setting['options'])): ?>
                                             <div class="radio-image-options-wrapper">
@@ -413,10 +491,16 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
                                     <!-- 2.1) Настройки второго уровня (видимые) -->
                                     <?php if (!empty($visibleLevel2)): ?>
                                         <?php foreach ($visibleLevel2 as $setting): ?>
-                                            <?php $width = qwelpSiteSettingsWidth($setting['percent'] ?? null); ?>
+                                            <?php
+                                            $width    = qwelpSiteSettingsWidth($setting['percent'] ?? null);
+                                            $typeData = $setting['type'];
+                                            if ($typeData === '' && isset($setting['options']['color'])) {
+                                                $typeData = 'color';
+                                            }
+                                            ?>
                                             <div class="setting-item"
                                                  data-setting-code="<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                 data-setting-type="<?= htmlspecialcharsbx($setting['type']) ?>"
+                                                 data-setting-type="<?= htmlspecialcharsbx($typeData) ?>"
                                                  style="flex-basis: <?= htmlspecialcharsbx($width) ?>; max-width: <?= htmlspecialcharsbx($width) ?>;"
                                             >
                                                 <div class="setting-label">
@@ -433,6 +517,9 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
 
                                                 <?php
                                                 $type = $setting['type'];
+                                                if ($type === '' && isset($setting['options']['color'])) {
+                                                    $type = 'color';
+                                                }
                                                 if ($type === 'checkbox'): ?>
                                                     <label class="toggle-wrapper">
                                                         <div class="toggle-relative">
@@ -487,6 +574,36 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
                                                             <?php endforeach; ?>
                                                         </select>
                                                     </div>
+                                                <?php elseif ($type === 'color'): ?>
+                                                    <?php $colorOpts = $setting['options']['color'] ?? ($setting['options'] ?? []); ?>
+                                                    <div class="color-options-wrapper">
+                                                        <?php if (!empty($colorOpts) && is_array($colorOpts)): ?>
+                                                            <?php foreach ($colorOpts as $idx => $opt): ?>
+                                                                <?php
+                                                                $val = htmlspecialcharsbx($opt['value'] ?? '');
+                                                                $lab = htmlspecialcharsbx($opt['label'] ?? $val);
+                                                                $id  = 'setting_' . htmlspecialcharsbx($setting['code']) . '_' . $idx;
+                                                                ?>
+                                                                <label class="color-option" title="<?= $lab ?>">
+                                                                    <input type="radio" id="<?= $id ?>" name="<?= htmlspecialcharsbx($setting['code']) ?>" value="<?= $val ?>" class="color-option-input">
+                                                                    <span class="color-swatch" style="background-color: <?= $val ?>;"></span>
+                                                                </label>
+                                                            <?php endforeach; ?>
+                                                        <?php endif; ?>
+                                                        <div class="custom-color-block">
+                                                            <label class="color-option" title="<?= Loc::getMessage('QWELP_SITE_SETTINGS_CUSTOM_COLOR') ?>">
+                                                                <input type="radio" id="setting_<?= htmlspecialcharsbx($setting['code']) ?>_custom" name="<?= htmlspecialcharsbx($setting['code']) ?>" value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>" class="color-option-input custom-color-radio">
+                                                                <span class="color-swatch custom-color-swatch"></span>
+                                                            </label>
+                                                            <input type="text" class="color-hex-input" value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>">
+                                                            <input
+                                                                    type="color"
+                                                                    id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                                    value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>"
+                                                                    class="color-picker-input"
+                                                            >
+                                                        </div>
+                                                    </div>
                                                 <?php elseif ($type === 'radioImage' && is_array($setting['options'])): ?>
                                                     <div class="radio-image-options-wrapper">
                                                         <?php foreach ($setting['options'] as $opt): ?>
@@ -534,10 +651,16 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
                                         </div>
                                         <div id="hidden-level2-<?= htmlspecialcharsbx($sec2['id']) ?>" class="collapse-content">
                                             <?php foreach ($hiddenLevel2 as $setting): ?>
-                                                <?php $width = qwelpSiteSettingsWidth($setting['percent'] ?? null); ?>
+                                                <?php
+                                                $width    = qwelpSiteSettingsWidth($setting['percent'] ?? null);
+                                                $typeData = $setting['type'];
+                                                if ($typeData === '' && isset($setting['options']['color'])) {
+                                                    $typeData = 'color';
+                                                }
+                                                ?>
                                                 <div class="hidden-setting-item"
                                                      data-setting-code="<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                     data-setting-type="<?= htmlspecialcharsbx($setting['type']) ?>"
+                                                     data-setting-type="<?= htmlspecialcharsbx($typeData) ?>"
                                                      style="flex-basis: <?= htmlspecialcharsbx($width) ?>; max-width: <?= htmlspecialcharsbx($width) ?>;"
                                                 >
                                                     <div class="setting-label">
@@ -554,6 +677,9 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
 
                                                     <?php
                                                     $type = $setting['type'];
+                                                    if ($type === '' && isset($setting['options']['color'])) {
+                                                        $type = 'color';
+                                                    }
                                                     if ($type === 'checkbox'): ?>
                                                         <label class="toggle-wrapper">
                                                             <div class="toggle-relative">
@@ -608,6 +734,36 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
                                                                 <?php endforeach; ?>
                                                             </select>
                                                         </div>
+                                                    <?php elseif ($type === 'color'): ?>
+                                                    <?php $colorOpts = $setting['options']['color'] ?? ($setting['options'] ?? []); ?>
+                                                    <div class="color-options-wrapper">
+                                                        <?php if (!empty($colorOpts) && is_array($colorOpts)): ?>
+                                                            <?php foreach ($colorOpts as $idx => $opt): ?>
+                                                                <?php
+                                                                $val = htmlspecialcharsbx($opt['value'] ?? '');
+                                                                $lab = htmlspecialcharsbx($opt['label'] ?? $val);
+                                                                $id  = 'setting_' . htmlspecialcharsbx($setting['code']) . '_' . $idx;
+                                                                ?>
+                                                                <label class="color-option" title="<?= $lab ?>">
+                                                                    <input type="radio" id="<?= $id ?>" name="<?= htmlspecialcharsbx($setting['code']) ?>" value="<?= $val ?>" class="color-option-input">
+                                                                    <span class="color-swatch" style="background-color: <?= $val ?>;"></span>
+                                                                </label>
+                                                            <?php endforeach; ?>
+                                                        <?php endif; ?>
+                                                        <div class="custom-color-block">
+                                                            <label class="color-option" title="<?= Loc::getMessage('QWELP_SITE_SETTINGS_CUSTOM_COLOR') ?>">
+                                                                <input type="radio" id="setting_<?= htmlspecialcharsbx($setting['code']) ?>_custom" name="<?= htmlspecialcharsbx($setting['code']) ?>" value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>" class="color-option-input custom-color-radio">
+                                                                <span class="color-swatch custom-color-swatch"></span>
+                                                            </label>
+                                                            <input type="text" class="color-hex-input" value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>">
+                                                            <input
+                                                                    type="color"
+                                                                    id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                                    value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>"
+                                                                    class="color-picker-input"
+                                                            >
+                                                        </div>
+                                                    </div>
                                                     <?php elseif ($type === 'radioImage' && is_array($setting['options'])): ?>
                                                         <div class="radio-image-options-wrapper">
                                                             <?php foreach ($setting['options'] as $opt): ?>
@@ -675,10 +831,16 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
 
                                             <?php if (!empty($sec3['settings'])): ?>
                                                 <?php foreach ($sec3['settings'] as $setting): ?>
-                                                    <?php $width = qwelpSiteSettingsWidth($setting['percent'] ?? null); ?>
+                                                    <?php
+                                                    $width    = qwelpSiteSettingsWidth($setting['percent'] ?? null);
+                                                    $typeData = $setting['type'];
+                                                    if ($typeData === '' && isset($setting['options']['color'])) {
+                                                        $typeData = 'color';
+                                                    }
+                                                    ?>
                                                     <div class="setting-item"
                                                          data-setting-code="<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                         data-setting-type="<?= htmlspecialcharsbx($setting['type']) ?>"
+                                                         data-setting-type="<?= htmlspecialcharsbx($typeData) ?>"
                                                          style="flex-basis: <?= htmlspecialcharsbx($width) ?>; max-width: <?= htmlspecialcharsbx($width) ?>;"
                                                     >
                                                         <div class="setting-label">
@@ -695,6 +857,9 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
 
                                                         <?php
                                                         $type = $setting['type'];
+                                                        if ($type === '' && isset($setting['options']['color'])) {
+                                                            $type = 'color';
+                                                        }
                                                         if ($type === 'checkbox'): ?>
                                                             <label class="toggle-wrapper">
                                                                 <div class="toggle-relative">
@@ -748,6 +913,36 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
                                                                         </option>
                                                                     <?php endforeach; ?>
                                                                 </select>
+                                                            </div>
+                                                        <?php elseif ($type === 'color'): ?>
+                                                            <?php $colorOpts = $setting['options']['color'] ?? ($setting['options'] ?? []); ?>
+                                                            <div class="color-options-wrapper">
+                                                                <?php if (!empty($colorOpts) && is_array($colorOpts)): ?>
+                                                                    <?php foreach ($colorOpts as $idx => $opt): ?>
+                                                                        <?php
+                                                                        $val = htmlspecialcharsbx($opt['value'] ?? '');
+                                                                        $lab = htmlspecialcharsbx($opt['label'] ?? $val);
+                                                                        $id  = 'setting_' . htmlspecialcharsbx($setting['code']) . '_' . $idx;
+                                                                        ?>
+                                                                        <label class="color-option" title="<?= $lab ?>">
+                                                                            <input type="radio" id="<?= $id ?>" name="<?= htmlspecialcharsbx($setting['code']) ?>" value="<?= $val ?>" class="color-option-input">
+                                                                            <span class="color-swatch" style="background-color: <?= $val ?>;"></span>
+                                                                        </label>
+                                                                    <?php endforeach; ?>
+                                                                <?php endif; ?>
+                                                                <div class="custom-color-block">
+                                                                    <label class="color-option" title="<?= Loc::getMessage('QWELP_SITE_SETTINGS_CUSTOM_COLOR') ?>">
+                                                                        <input type="radio" id="setting_<?= htmlspecialcharsbx($setting['code']) ?>_custom" name="<?= htmlspecialcharsbx($setting['code']) ?>" value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>" class="color-option-input custom-color-radio">
+                                                                        <span class="color-swatch custom-color-swatch"></span>
+                                                                    </label>
+                                                                    <input type="text" class="color-hex-input" value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>">
+                                                                    <input
+                                                                            type="color"
+                                                                            id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                                            value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>"
+                                                                            class="color-picker-input"
+                                                                    >
+                                                                </div>
                                                             </div>
                                                         <?php elseif ($type === 'radioImage' && is_array($setting['options'])): ?>
                                                             <div class="radio-image-options-wrapper">
@@ -804,10 +999,16 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
                                                     </div>
                                                     <?php if (!empty($sec3['settings'])): ?>
                                                         <?php foreach ($sec3['settings'] as $setting): ?>
-                                                            <?php $width = qwelpSiteSettingsWidth($setting['percent'] ?? null); ?>
+                                                            <?php
+                                                            $width    = qwelpSiteSettingsWidth($setting['percent'] ?? null);
+                                                            $typeData = $setting['type'];
+                                                            if ($typeData === '' && isset($setting['options']['color'])) {
+                                                                $typeData = 'color';
+                                                            }
+                                                            ?>
                                                             <div class="hidden-setting-item"
                                                                  data-setting-code="<?= htmlspecialcharsbx($setting['code']) ?>"
-                                                                 data-setting-type="<?= htmlspecialcharsbx($setting['type']) ?>"
+                                                                 data-setting-type="<?= htmlspecialcharsbx($typeData) ?>"
                                                                  style="flex-basis: <?= htmlspecialcharsbx($width) ?>; max-width: <?= htmlspecialcharsbx($width) ?>;"
                                                             >
                                                                 <div class="setting-label">
@@ -824,6 +1025,9 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
 
                                                                 <?php
                                                                 $type = $setting['type'];
+if ($type === '' && isset($setting['options']['color'])) {
+                                                                    $type = 'color';
+                                                                }
                                                                 if ($type === 'checkbox'): ?>
                                                                     <label class="toggle-wrapper">
                                                                         <div class="toggle-relative">
@@ -878,6 +1082,52 @@ if (!function_exists('qwelpSiteSettingsWidth')) {
                                                                             <?php endforeach; ?>
                                                                         </select>
                                                                     </div>
+                                                                <?php elseif ($type === 'color'): ?>
+                                                                    <?php $colorOpts = $setting['options']['color'] ?? ($setting['options'] ?? []); ?>
+                                                                    <?php if (!empty($colorOpts) && is_array($colorOpts)): ?>
+                                                                        <div class="color-options-wrapper">
+                                                                            <?php foreach ($colorOpts as $idx => $opt): ?>
+                                                                                <?php
+                                                                                $val = htmlspecialcharsbx($opt['value'] ?? '');
+                                                                                $lab = htmlspecialcharsbx($opt['label'] ?? $val);
+                                                                                $id  = 'setting_' . htmlspecialcharsbx($setting['code']) . '_' . $idx;
+                                                                                ?>
+                                                                                <label class="color-option" title="<?= $lab ?>">
+                                                                                    <input type="radio" id="<?= $id ?>" name="<?= htmlspecialcharsbx($setting['code']) ?>" value="<?= $val ?>" class="color-option-input">
+                                                                                    <span class="color-swatch" style="background-color: <?= $val ?>;"></span>
+                                                                                </label>
+                                                                            <?php endforeach; ?>
+                                                                            <div class="custom-color-block">
+                                                                                <label class="color-option" title="<?= Loc::getMessage('QWELP_SITE_SETTINGS_CUSTOM_COLOR') ?>">
+                                                                                    <input type="radio" id="setting_<?= htmlspecialcharsbx($setting['code']) ?>_custom" name="<?= htmlspecialcharsbx($setting['code']) ?>" value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>" class="color-option-input custom-color-radio">
+                                                                                    <span class="color-swatch custom-color-swatch"></span>
+                                                                                </label>
+                                                                                <input type="text" class="color-hex-input" value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>">
+                                                                                <input
+                                                                                        type="color"
+                                                                                        id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                                                        value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>"
+                                                                                        class="color-picker-input"
+                                                                                >
+                                                                            </div>
+                                                                        </div>
+                                                                    <?php else: ?>
+                                                                        <div class="color-options-wrapper">
+                                                                            <div class="custom-color-block">
+                                                                                <label class="color-option" title="<?= Loc::getMessage('QWELP_SITE_SETTINGS_CUSTOM_COLOR') ?>">
+                                                                                    <input type="radio" id="setting_<?= htmlspecialcharsbx($setting['code']) ?>_custom" name="<?= htmlspecialcharsbx($setting['code']) ?>" value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>" class="color-option-input custom-color-radio">
+                                                                                    <span class="color-swatch custom-color-swatch"></span>
+                                                                                </label>
+                                                                                <input type="text" class="color-hex-input" value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>">
+                                                                                <input
+                                                                                        type="color"
+                                                                                        id="setting_<?= htmlspecialcharsbx($setting['code']) ?>"
+                                                                                        value="<?= htmlspecialcharsbx($setting['value'] ?? '#000000') ?>"
+                                                                                        class="color-picker-input"
+                                                                                >
+                                                                            </div>
+                                                                        </div>
+                                                                    <?php endif; ?>
                                                                 <?php elseif ($type === 'radioImage' && is_array($setting['options'])): ?>
                                                                     <div class="radio-image-options-wrapper">
                                                                         <?php foreach ($setting['options'] as $opt): ?>
