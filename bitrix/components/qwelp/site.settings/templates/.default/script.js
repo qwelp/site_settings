@@ -182,6 +182,32 @@ function switchSection(sectionId) {
     });
 }
 
+function switchTab(tabId, tabsContainerId) {
+    const tabsContainer = document.getElementById(tabsContainerId);
+    if (!tabsContainer) return;
+
+    // Deactivate all tabs and tab contents
+    tabsContainer.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    tabsContainer.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+        // Ensure content is hidden
+        content.style.display = 'none';
+    });
+
+    // Activate the selected tab and its content
+    const selectedTab = tabsContainer.querySelector(`.tab[data-tab="${tabId}"]`);
+    const selectedContent = tabsContainer.querySelector(`.tab-content[data-tab="${tabId}"]`);
+
+    if (selectedTab) selectedTab.classList.add('active');
+    if (selectedContent) {
+        selectedContent.classList.add('active');
+        // Ensure content is visible
+        selectedContent.style.display = 'block';
+    }
+}
+
 function initSettingsPanel() {
     document.getElementById('open-settings')?.addEventListener('click', openSettings);
     document.querySelector('.settings-close')?.addEventListener('click', closeSettings);
@@ -194,6 +220,34 @@ function initSettingsPanel() {
     document.querySelectorAll('.settings-nav li').forEach(item => {
         item.addEventListener('click', () => switchSection(item.dataset.section));
     });
+
+    // Initialize tabs
+    document.querySelectorAll('.tabs-container').forEach(container => {
+        const tabs = container.querySelectorAll('.tab');
+        if (tabs.length > 0) {
+            // Set first tab as active by default
+            const firstTabId = tabs[0].dataset.tab;
+            switchTab(firstTabId, container.id);
+
+            // Add click event listeners to tabs
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Ensure only one tab is visible at a time
+                    switchTab(tab.dataset.tab, container.id);
+                });
+            });
+        }
+    });
+
+    // Ensure all tab content is properly initialized with correct display state
+    document.querySelectorAll('.tab-content').forEach(content => {
+        if (!content.classList.contains('active')) {
+            content.style.display = 'none';
+        } else {
+            content.style.display = 'block';
+        }
+    });
+
     initHelpIcons();
 }
 
@@ -381,7 +435,6 @@ function initColorSwatches() {
             });
             if (customRadio) {
                 customRadio.value = val;
-                if (customSwatch) customSwatch.style.backgroundColor = val;
                 if (!matched) customRadio.checked = true;
             }
         };

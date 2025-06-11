@@ -15,3 +15,5 @@ $MESS['QWELP_SITE_SETTINGS_UNKNOWN_ERROR'] = 'Неизвестная ошибк�
 $MESS['QWELP_SITE_SETTINGS_SAVE_ERROR_SIMPLE'] = 'Ошибка при сохранении настроек';
 $MESS['QWELP_SITE_SETTINGS_NO_OPTIONS'] = 'Нет доступных опций';
 $MESS['QWELP_SITE_SETTINGS_CUSTOM_COLOR'] = 'Свой вариант';
+$MESS['QWELP_SITE_SETTINGS_NESTED_SECTIONS'] = 'Вложенные настройки: #TITLE#';
+$MESS['QWELP_SITE_SETTINGS_HELP_ICON_TITLE'] = 'Подсказка';

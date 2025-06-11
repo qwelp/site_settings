@@ -393,8 +393,24 @@ function InstallDB(): bool
                 'CODE'       => 'general',
                 'SORT'       => 100,
                 'SUBSECTIONS'=> [
-                    ['NAME' => 'Основные',      'CODE' => 'general_main',        'SORT' => 110],
-                    ['NAME' => 'Дополнительные','CODE' => 'general_additional', 'SORT' => 120],
+                    [
+                        'NAME' => 'Основные',
+                        'CODE' => 'general_main',
+                        'SORT' => 110,
+                        'SUBSECTIONS' => [
+                            ['NAME' => 'Базовые настройки', 'CODE' => 'general_main_basic', 'SORT' => 111],
+                            ['NAME' => 'Расширенные', 'CODE' => 'general_main_advanced', 'SORT' => 112],
+                        ],
+                    ],
+                    [
+                        'NAME' => 'Дополнительные',
+                        'CODE' => 'general_additional',
+                        'SORT' => 120,
+                        'SUBSECTIONS' => [
+                            ['NAME' => 'Языковые настройки', 'CODE' => 'general_additional_lang', 'SORT' => 121],
+                            ['NAME' => 'Прочие настройки', 'CODE' => 'general_additional_other', 'SORT' => 122],
+                        ],
+                    ],
                 ],
             ],
             [
@@ -402,8 +418,24 @@ function InstallDB(): bool
                 'CODE'       => 'appearance',
                 'SORT'       => 200,
                 'SUBSECTIONS'=> [
-                    ['NAME' => 'Темы',     'CODE' => 'appearance_themes','SORT' => 210],
-                    ['NAME' => 'Элементы','CODE' => 'appearance_elements','SORT' => 220],
+                    [
+                        'NAME' => 'Темы',
+                        'CODE' => 'appearance_themes',
+                        'SORT' => 210,
+                        'SUBSECTIONS' => [
+                            ['NAME' => 'Цветовые схемы', 'CODE' => 'appearance_themes_colors', 'SORT' => 211],
+                            ['NAME' => 'Шрифты', 'CODE' => 'appearance_themes_fonts', 'SORT' => 212],
+                        ],
+                    ],
+                    [
+                        'NAME' => 'Элементы',
+                        'CODE' => 'appearance_elements',
+                        'SORT' => 220,
+                        'SUBSECTIONS' => [
+                            ['NAME' => 'Кнопки и формы', 'CODE' => 'appearance_elements_buttons', 'SORT' => 221],
+                            ['NAME' => 'Изображения', 'CODE' => 'appearance_elements_images', 'SORT' => 222],
+                        ],
+                    ],
                 ],
             ],
             [
@@ -411,8 +443,24 @@ function InstallDB(): bool
                 'CODE'       => 'notifications',
                 'SORT'       => 300,
                 'SUBSECTIONS'=> [
-                    ['NAME' => 'Email',   'CODE' => 'notifications_email','SORT' => 310],
-                    ['NAME' => 'Системные','CODE' => 'notifications_system','SORT' => 320],
+                    [
+                        'NAME' => 'Email',
+                        'CODE' => 'notifications_email',
+                        'SORT' => 310,
+                        'SUBSECTIONS' => [
+                            ['NAME' => 'Шаблоны писем', 'CODE' => 'notifications_email_templates', 'SORT' => 311],
+                            ['NAME' => 'Настройки отправки', 'CODE' => 'notifications_email_settings', 'SORT' => 312],
+                        ],
+                    ],
+                    [
+                        'NAME' => 'Системные',
+                        'CODE' => 'notifications_system',
+                        'SORT' => 320,
+                        'SUBSECTIONS' => [
+                            ['NAME' => 'Всплывающие уведомления', 'CODE' => 'notifications_system_popup', 'SORT' => 321],
+                            ['NAME' => 'Журнал событий', 'CODE' => 'notifications_system_log', 'SORT' => 322],
+                        ],
+                    ],
                 ],
             ],
             [
@@ -420,8 +468,24 @@ function InstallDB(): bool
                 'CODE'       => 'security',
                 'SORT'       => 400,
                 'SUBSECTIONS'=> [
-                    ['NAME' => 'Авторизация',    'CODE' => 'security_auth',      'SORT' => 410],
-                    ['NAME' => 'Защита',         'CODE' => 'security_protection','SORT' => 420],
+                    [
+                        'NAME' => 'Авторизация',
+                        'CODE' => 'security_auth',
+                        'SORT' => 410,
+                        'SUBSECTIONS' => [
+                            ['NAME' => 'Методы входа', 'CODE' => 'security_auth_methods', 'SORT' => 411],
+                            ['NAME' => 'Пароли', 'CODE' => 'security_auth_passwords', 'SORT' => 412],
+                        ],
+                    ],
+                    [
+                        'NAME' => 'Защита',
+                        'CODE' => 'security_protection',
+                        'SORT' => 420,
+                        'SUBSECTIONS' => [
+                            ['NAME' => 'Антиспам', 'CODE' => 'security_protection_antispam', 'SORT' => 421],
+                            ['NAME' => 'Брандмауэр', 'CODE' => 'security_protection_firewall', 'SORT' => 422],
+                        ],
+                    ],
                 ],
             ],
             [
@@ -429,8 +493,24 @@ function InstallDB(): bool
                 'CODE'       => 'integration',
                 'SORT'       => 500,
                 'SUBSECTIONS'=> [
-                    ['NAME' => 'API',      'CODE' => 'integration_api',     'SORT' => 510],
-                    ['NAME' => 'Сервисы',  'CODE' => 'integration_services','SORT' => 520],
+                    [
+                        'NAME' => 'API',
+                        'CODE' => 'integration_api',
+                        'SORT' => 510,
+                        'SUBSECTIONS' => [
+                            ['NAME' => 'Ключи доступа', 'CODE' => 'integration_api_keys', 'SORT' => 511],
+                            ['NAME' => 'Ограничения', 'CODE' => 'integration_api_limits', 'SORT' => 512],
+                        ],
+                    ],
+                    [
+                        'NAME' => 'Сервисы',
+                        'CODE' => 'integration_services',
+                        'SORT' => 520,
+                        'SUBSECTIONS' => [
+                            ['NAME' => 'Социальные сети', 'CODE' => 'integration_services_social', 'SORT' => 521],
+                            ['NAME' => 'Платежные системы', 'CODE' => 'integration_services_payment', 'SORT' => 522],
+                        ],
+                    ],
                 ],
             ],
         ];
@@ -515,6 +595,49 @@ function InstallDB(): bool
                             $APPLICATION->ThrowException($bs->LAST_ERROR);
                         } else {
                             $subsectionIds[$subCode] = $subId;
+
+                            // Добавляем разделы третьего уровня
+                            if (!empty($sub['SUBSECTIONS'])) {
+                                foreach ($sub['SUBSECTIONS'] as $sub3) {
+                                    // Если код не задан, транслитерируем из названия
+                                    $sub3Code = trim($sub3['CODE'] ?? '');
+                                    if ($sub3Code === '') {
+                                        $sub3Code = transliterateString($sub3['NAME']);
+                                    }
+
+                                    // Проверяем уникальность внутри инфоблока
+                                    $exists3 = \CIBlockSection::GetList(
+                                        [],
+                                        [
+                                            'IBLOCK_ID' => $iblockId,
+                                            'CODE'      => $sub3Code,
+                                        ],
+                                        false,
+                                        ['ID'],
+                                        ['nTopCount' => 1]
+                                    )->Fetch();
+
+                                    if ($exists3) {
+                                        // Если код уже используется, добавляем к нему уникальный суффикс
+                                        $sub3Code .= '-' . rand(100, 999);
+                                    }
+
+                                    $sub3Fields = [
+                                        'ACTIVE'            => 'Y',
+                                        'IBLOCK_ID'         => $iblockId,
+                                        'NAME'              => $sub3['NAME'],
+                                        'CODE'              => $sub3Code,  // Обязательное поле
+                                        'SORT'              => $sub3['SORT'],
+                                        'IBLOCK_SECTION_ID' => $subId,
+                                    ];
+                                    $sub3Id = $bs->Add($sub3Fields);
+                                    if (!$sub3Id) {
+                                        $APPLICATION->ThrowException($bs->LAST_ERROR);
+                                    } else {
+                                        $subsectionIds[$sub3Code] = $sub3Id;
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -523,20 +646,31 @@ function InstallDB(): bool
 
         // === Элементы (настройки) ===
         $settings = [
-            // Общие — Основные
+            // Общие — Основные — Базовые настройки
             [
                 'NAME'          => 'Включить функцию',
                 'CODE'          => 'ENABLE_FEATURE',
-                'SECTION_CODE'  => 'general_main',
+                'SECTION_CODE'  => 'general_main_basic',
                 'TYPE'          => 'checkbox',
                 'HELP_TEXT'     => 'Включает основную функциональность модуля.',
                 'HELP_IMAGE'    => '/img/help-general.png',
                 'SORT'          => 100,
             ],
+            // Общие — Основные — Расширенные
+            [
+                'NAME'          => 'Расширенные настройки',
+                'CODE'          => 'ADVANCED_SETTINGS',
+                'SECTION_CODE'  => 'general_main_advanced',
+                'TYPE'          => 'checkbox',
+                'HELP_TEXT'     => 'Включает расширенные настройки модуля.',
+                'HELP_IMAGE'    => '/img/help-general.png',
+                'SORT'          => 110,
+            ],
+            // Общие — Дополнительные — Языковые настройки
             [
                 'NAME'          => 'Язык интерфейса',
                 'CODE'          => 'LANGUAGE',
-                'SECTION_CODE'  => 'general_additional',
+                'SECTION_CODE'  => 'general_additional_lang',
                 'TYPE'          => 'select',
                 'VALUES'        => [
                     'TEXT' => json_encode([
@@ -550,12 +684,22 @@ function InstallDB(): bool
                 'HELP_IMAGE'    => '',
                 'SORT'          => 200,
             ],
+            // Общие — Дополнительные — Прочие настройки
+            [
+                'NAME'          => 'Прочие настройки',
+                'CODE'          => 'OTHER_SETTINGS',
+                'SECTION_CODE'  => 'general_additional_other',
+                'TYPE'          => 'checkbox',
+                'HELP_TEXT'     => 'Включает прочие настройки модуля.',
+                'HELP_IMAGE'    => '',
+                'SORT'          => 210,
+            ],
 
-            // Внешний вид — Темы
+            // Внешний вид — Темы — Цветовые схемы
             [
                 'NAME'          => 'Тип оформления',
                 'CODE'          => 'LAYOUT_TYPE',
-                'SECTION_CODE'  => 'appearance_themes',
+                'SECTION_CODE'  => 'appearance_themes_colors',
                 'TYPE'          => 'radio',
                 'VALUES'        => [
                     'TEXT' => json_encode([
@@ -568,10 +712,39 @@ function InstallDB(): bool
                 'HELP_IMAGE'    => '/img/help-appearance.png',
                 'SORT'          => 100,
             ],
+            // Внешний вид — Темы — Шрифты
+            [
+                'NAME'          => 'Шрифт',
+                'CODE'          => 'FONT_FAMILY',
+                'SECTION_CODE'  => 'appearance_themes_fonts',
+                'TYPE'          => 'select',
+                'VALUES'        => [
+                    'TEXT' => json_encode([
+                        ['value' => 'arial', 'label' => 'Arial'],
+                        ['value' => 'times', 'label' => 'Times New Roman'],
+                        ['value' => 'verdana', 'label' => 'Verdana'],
+                    ]),
+                    'TYPE' => 'html',
+                ],
+                'HELP_TEXT'     => 'Выберите шрифт для интерфейса.',
+                'HELP_IMAGE'    => '',
+                'SORT'          => 110,
+            ],
+            // Внешний вид — Элементы — Кнопки и формы
+            [
+                'NAME'          => 'Показать заголовок',
+                'CODE'          => 'SHOW_TITLE',
+                'SECTION_CODE'  => 'appearance_elements_buttons',
+                'TYPE'          => 'checkbox',
+                'HELP_TEXT'     => 'Отображать заголовок на странице',
+                'HELP_IMAGE'    => '',
+                'SORT'          => 300,
+            ],
+            // Внешний вид — Элементы — Изображения
             [
                 'NAME'          => 'Фоновая тема',
                 'CODE'          => 'THEME_IMAGE',
-                'SECTION_CODE'  => 'appearance_elements',
+                'SECTION_CODE'  => 'appearance_elements_images',
                 'TYPE'          => 'radioImage',
                 'VALUES'        => [
                     'TEXT' => json_encode([
@@ -585,31 +758,49 @@ function InstallDB(): bool
                 'HELP_IMAGE'    => '',
                 'SORT'          => 200,
             ],
-            // Новый чекбокс «Показать заголовок»
-            [
-                'NAME'          => 'Показать заголовок',
-                'CODE'          => 'SHOW_TITLE',
-                'SECTION_CODE'  => 'appearance_elements',
-                'TYPE'          => 'checkbox',
-                'HELP_TEXT'     => 'Отображать заголовок на странице',
-                'HELP_IMAGE'    => '',
-                'SORT'          => 300,
-            ],
 
-            // Уведомления — Email
+            // Уведомления — Email — Шаблоны писем
+            [
+                'NAME'          => 'Шаблон письма',
+                'CODE'          => 'EMAIL_TEMPLATE',
+                'SECTION_CODE'  => 'notifications_email_templates',
+                'TYPE'          => 'select',
+                'VALUES'        => [
+                    'TEXT' => json_encode([
+                        ['value' => 'default', 'label' => 'Стандартный'],
+                        ['value' => 'custom', 'label' => 'Пользовательский'],
+                    ]),
+                    'TYPE' => 'html',
+                ],
+                'HELP_TEXT'     => 'Выберите шаблон для email-уведомлений.',
+                'HELP_IMAGE'    => '',
+                'SORT'          => 110,
+            ],
+            // Уведомления — Email — Настройки отправки
             [
                 'NAME'          => 'Email-уведомления',
                 'CODE'          => 'EMAIL_NOTIFY',
-                'SECTION_CODE'  => 'notifications_email',
+                'SECTION_CODE'  => 'notifications_email_settings',
                 'TYPE'          => 'checkbox',
                 'HELP_TEXT'     => 'Получать уведомления о важных событиях на почту.',
                 'HELP_IMAGE'    => '',
                 'SORT'          => 100,
             ],
+            // Уведомления — Системные — Всплывающие уведомления
+            [
+                'NAME'          => 'Всплывающие уведомления',
+                'CODE'          => 'POPUP_NOTIFY',
+                'SECTION_CODE'  => 'notifications_system_popup',
+                'TYPE'          => 'checkbox',
+                'HELP_TEXT'     => 'Показывать всплывающие уведомления.',
+                'HELP_IMAGE'    => '',
+                'SORT'          => 120,
+            ],
+            // Уведомления — Системные — Журнал событий
             [
                 'NAME'          => 'Частота уведомлений',
                 'CODE'          => 'NOTIFY_FREQUENCY',
-                'SECTION_CODE'  => 'notifications_system',
+                'SECTION_CODE'  => 'notifications_system_log',
                 'TYPE'          => 'select',
                 'VALUES'        => [
                     'TEXT' => json_encode([
@@ -624,20 +815,49 @@ function InstallDB(): bool
                 'SORT'          => 200,
             ],
 
-            // Безопасность — Авторизация
+            // Безопасность — Авторизация — Методы входа
             [
                 'NAME'          => 'Двухфакторная аутентификация',
                 'CODE'          => 'TWO_FACTOR',
-                'SECTION_CODE'  => 'security_auth',
+                'SECTION_CODE'  => 'security_auth_methods',
                 'TYPE'          => 'checkbox',
                 'HELP_TEXT'     => 'Добавляет второй уровень защиты при входе.',
                 'HELP_IMAGE'    => '/img/help-security.png',
                 'SORT'          => 100,
             ],
+            // Безопасность — Авторизация — Пароли
+            [
+                'NAME'          => 'Сложность пароля',
+                'CODE'          => 'PASSWORD_COMPLEXITY',
+                'SECTION_CODE'  => 'security_auth_passwords',
+                'TYPE'          => 'select',
+                'VALUES'        => [
+                    'TEXT' => json_encode([
+                        ['value' => 'low', 'label' => 'Низкая'],
+                        ['value' => 'medium', 'label' => 'Средняя'],
+                        ['value' => 'high', 'label' => 'Высокая'],
+                    ]),
+                    'TYPE' => 'html',
+                ],
+                'HELP_TEXT'     => 'Выберите требуемую сложность пароля.',
+                'HELP_IMAGE'    => '',
+                'SORT'          => 130,
+            ],
+            // Безопасность — Защита — Антиспам
+            [
+                'NAME'          => 'Защита от спама',
+                'CODE'          => 'ANTISPAM',
+                'SECTION_CODE'  => 'security_protection_antispam',
+                'TYPE'          => 'checkbox',
+                'HELP_TEXT'     => 'Включает защиту от спама.',
+                'HELP_IMAGE'    => '',
+                'SORT'          => 140,
+            ],
+            // Безопасность — Защита — Брандмауэр
             [
                 'NAME'          => 'Таймаут сессии',
                 'CODE'          => 'SESSION_TIMEOUT',
-                'SECTION_CODE'  => 'security_protection',
+                'SECTION_CODE'  => 'security_protection_firewall',
                 'TYPE'          => 'select',
                 'VALUES'        => [
                     'TEXT' => json_encode([
@@ -652,20 +872,49 @@ function InstallDB(): bool
                 'SORT'          => 200,
             ],
 
-            // Интеграции — API
+            // Интеграции — API — Ключи доступа
             [
                 'NAME'          => 'Включить API-доступ',
                 'CODE'          => 'ENABLE_API',
-                'SECTION_CODE'  => 'integration_api',
+                'SECTION_CODE'  => 'integration_api_keys',
                 'TYPE'          => 'checkbox',
                 'HELP_TEXT'     => 'Позволяет внешним сервисам обращаться к вашему сайту через API.',
                 'HELP_IMAGE'    => '',
                 'SORT'          => 100,
             ],
+            // Интеграции — API — Ограничения
+            [
+                'NAME'          => 'Лимит запросов',
+                'CODE'          => 'API_RATE_LIMIT',
+                'SECTION_CODE'  => 'integration_api_limits',
+                'TYPE'          => 'select',
+                'VALUES'        => [
+                    'TEXT' => json_encode([
+                        ['value' => '100', 'label' => '100 запросов/мин'],
+                        ['value' => '500', 'label' => '500 запросов/мин'],
+                        ['value' => '1000', 'label' => '1000 запросов/мин'],
+                    ]),
+                    'TYPE' => 'html',
+                ],
+                'HELP_TEXT'     => 'Ограничение количества запросов к API.',
+                'HELP_IMAGE'    => '',
+                'SORT'          => 150,
+            ],
+            // Интеграции — Сервисы — Социальные сети
+            [
+                'NAME'          => 'Интеграция с соцсетями',
+                'CODE'          => 'SOCIAL_INTEGRATION',
+                'SECTION_CODE'  => 'integration_services_social',
+                'TYPE'          => 'checkbox',
+                'HELP_TEXT'     => 'Включает интеграцию с социальными сетями.',
+                'HELP_IMAGE'    => '',
+                'SORT'          => 160,
+            ],
+            // Интеграции — Сервисы — Платежные системы
             [
                 'NAME'          => 'Режим API',
                 'CODE'          => 'API_MODE',
-                'SECTION_CODE'  => 'integration_services',
+                'SECTION_CODE'  => 'integration_services_payment',
                 'TYPE'          => 'radio',
                 'VALUES'        => [
                     'TEXT' => json_encode([
