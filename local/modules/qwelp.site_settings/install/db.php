@@ -277,6 +277,80 @@ function InstallDB(): bool
         ];
         $obEnum->SetEnumValues($userFieldId, $enumValues);
 
+        // Добавляем пользовательское поле для разделов - единое свойство
+        $commonPropertyUserField = [
+            'ENTITY_ID'         => 'IBLOCK_' . $iblockId . '_SECTION',
+            'FIELD_NAME'        => 'UF_COMMON_PROPERTY', // Новое системное имя
+            'USER_TYPE_ID'      => 'boolean',
+            'XML_ID'            => 'UF_COMMON_PROPERTY',
+            'SORT'              => 520,
+            'MULTIPLE'          => 'N', // Логическое поле не может быть множественным
+            'MANDATORY'         => 'N', // Обязательность поля (N - нет)
+            'SHOW_FILTER'       => 'N',
+            'SHOW_IN_LIST'      => 'Y', // Показывать в списке разделов
+            'EDIT_IN_LIST'      => 'Y', // Разрешать редактирование в списке
+            'IS_SEARCHABLE'     => 'N',
+            'SETTINGS'          => [
+                'DEFAULT_VALUE' => '',
+                'SIZE'          => 20,
+                'ROWS'          => 1,
+            ],
+            'EDIT_FORM_LABEL'   => [
+                'ru' => 'Единое свойство',
+                'en' => 'Common Property',
+            ],
+            'LIST_COLUMN_LABEL' => [
+                'ru' => 'Единое свойство',
+                'en' => 'Common Property',
+            ],
+            'LIST_FILTER_LABEL' => [
+                'ru' => 'Единое свойство',
+                'en' => 'Common Property',
+            ],
+            'HELP_MESSAGE'      => [
+                'ru' => 'Единое свойство для всех разделов.',
+                'en' => 'A common property for all sections.',
+            ],
+        ];
+        $commonPropertyUserFieldId = $oUserTypeEntity->Add($commonPropertyUserField);
+        if (!$commonPropertyUserFieldId) {
+            if ($ex = $APPLICATION->GetException()) {
+                $APPLICATION->ThrowException(Loc::getMessage('QWELP_SITE_SETTINGS_UF_ADD_ERROR') . $ex->GetString());
+            } else {
+                $APPLICATION->ThrowException(Loc::getMessage('QWELP_SITE_SETTINGS_UF_ADD_ERROR_UNKNOWN'));
+            }
+            return false;
+        }
+
+        // Добавляем пользовательское поле для разделов - свернутый блок
+        $collapsedBlockUserField = [
+            'ENTITY_ID'         => 'IBLOCK_' . $iblockId . '_SECTION',
+            'FIELD_NAME'        => 'UF_COLLAPSED_BLOCK',
+            'USER_TYPE_ID'      => 'boolean',
+            'XML_ID'            => 'UF_COLLAPSED_BLOCK',
+            'SORT'              => 530,
+            'MULTIPLE'          => 'N',
+            'MANDATORY'         => 'N',
+            'SHOW_FILTER'       => 'N',
+            'SHOW_IN_LIST'      => 'Y',
+            'EDIT_IN_LIST'      => 'Y',
+            'IS_SEARCHABLE'     => 'N',
+            'SETTINGS'          => ['DEFAULT_VALUE' => '', 'SIZE' => 20, 'ROWS' => 1],
+            'EDIT_FORM_LABEL'   => ['ru' => 'Свернутый блок', 'en' => 'Collapsed Block'],
+            'LIST_COLUMN_LABEL' => ['ru' => 'Свернутый блок', 'en' => 'Collapsed Block'],
+            'LIST_FILTER_LABEL' => ['ru' => 'Свернутый блок', 'en' => 'Collapsed Block'],
+            'HELP_MESSAGE'      => ['ru' => 'Позволяет скрывать содержимое раздела по умолчанию.', 'en' => 'Allows to hide the section content by default.'],
+        ];
+        $collapsedBlockUserFieldId = $oUserTypeEntity->Add($collapsedBlockUserField);
+        if (!$collapsedBlockUserFieldId) {
+            if ($ex = $APPLICATION->GetException()) {
+                $APPLICATION->ThrowException(Loc::getMessage('QWELP_SITE_SETTINGS_UF_ADD_ERROR') . $ex->GetString());
+            } else {
+                $APPLICATION->ThrowException(Loc::getMessage('QWELP_SITE_SETTINGS_UF_ADD_ERROR_UNKNOWN'));
+            }
+            return false;
+        }
+
         // === Свойства инфоблока ===
         $ibp = new \CIBlockProperty();
 

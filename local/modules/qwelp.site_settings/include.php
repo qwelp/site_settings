@@ -4,6 +4,7 @@
   [
     'Qwelp\SiteSettings\EventHandler' => 'lib/EventHandler.php',
     'Qwelp\SiteSettings\Property\ValuesPropertyType' => 'lib/Property/ValuesPropertyType.php',
+   '\Qwelp\SiteSettings\SettingsManager' => 'local/modules/qwelp.site_settings/lib/SettingsManager.php',
   ]
 );
 
