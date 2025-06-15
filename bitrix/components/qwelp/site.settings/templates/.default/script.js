@@ -19,6 +19,7 @@ BX.ready(function() {
                 closeBtn: document.querySelector('.settings-panel__close-btn'),
                 applyBtn: document.querySelector('.btn--apply'),
                 resetBtn: document.querySelector('.btn--reset'),
+                tooltip: null, // Инициализируем тултип
             };
 
             this.state = this.createInitialState();
@@ -27,6 +28,14 @@ BX.ready(function() {
             this.bindEvents();
             this.updateUIFromState();
             this.initSortable();
+            this.createTooltipElement(); // Создаем элемент тултипа один раз
+        }
+
+        createTooltipElement() {
+            const tooltip = document.createElement('div');
+            tooltip.className = 'qwelp-help-tooltip';
+            document.body.appendChild(tooltip);
+            this.elements.tooltip = tooltip;
         }
 
         createInitialState() {
@@ -48,7 +57,9 @@ BX.ready(function() {
             this.elements.openBtn?.addEventListener('click', () => this.open());
             this.elements.closeBtn?.addEventListener('click', () => this.close());
             this.elements.overlay?.addEventListener('click', (e) => {
-                if (e.target === this.elements.overlay) this.close();
+                if (e.target === this.elements.overlay || e.target.classList.contains('settings-panel')) {
+                    this.hideHelp();
+                }
             });
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
@@ -65,26 +76,38 @@ BX.ready(function() {
             });
 
             this.elements.panel.querySelectorAll('.tab').forEach(tab => {
-                tab.addEventListener('click', () => this.switchTab(tab.closest('.tabs-container'), tab.dataset.tabId));
+                tab.addEventListener('click', (e) => {
+                    if (e.target.closest('.help-icon')) return;
+                    this.switchTab(tab.closest('.tabs-container'), tab.dataset.tabId);
+                });
             });
 
             this.elements.panel.addEventListener('click', (e) => {
                 const collapsibleTitle = e.target.closest('.is-collapsible > .setting-group__title');
-                if (collapsibleTitle) {
+                if (collapsibleTitle && !e.target.closest('.setting-group__header-controls, .help-icon-wrapper')) {
                     this.toggleCollapsibleBlock(collapsibleTitle.parentElement);
+                    return;
+                }
+
+                const detailToggle = e.target.closest('.detail-settings-toggle');
+                if (detailToggle) {
+                    this.toggleDetailSettings(detailToggle);
                     return;
                 }
 
                 const helpIcon = e.target.closest('.help-icon');
                 if (helpIcon) {
+                    // Предотвращаем срабатывание родительского <label>
+                    e.preventDefault();
                     e.stopPropagation();
                     this.toggleHelp(helpIcon);
                 } else {
-                    if (!e.target.closest('.qwelp-help-tooltip')) {
-                        this.hideHelp();
-                    }
+                    this.hideHelp();
                 }
             });
+
+            // Скрывать тултип при скролле внутри панели
+            this.elements.panel.querySelector('.settings-panel__content').addEventListener('scroll', () => this.hideHelp());
 
             this.elements.panel.addEventListener('input', this.handleControlChange.bind(this));
             this.elements.panel.addEventListener('change', this.handleControlChange.bind(this));
@@ -104,60 +127,74 @@ BX.ready(function() {
                     ghostClass: 'sortable-ghost',
                     chosenClass: 'sortable-chosen',
                     dragClass: 'sortable-drag',
-                    // onEnd обработчик удален, т.к. сохранение не требуется
                 });
             });
         }
-
-        // Метод saveSort удален
 
         toggleCollapsibleBlock(block) {
             const isCollapsed = block.dataset.collapsed === 'true';
             block.dataset.collapsed = isCollapsed ? 'false' : 'true';
         }
 
+        toggleDetailSettings(button) {
+            const context = button.closest('.setting-group__content, .radio-card__content');
+            if (!context) return;
+
+            context.classList.toggle('details-shown');
+
+            // Если текст задан через data-атрибут, он не меняется.
+            // Меняется только текст по умолчанию.
+            if (!button.dataset.textShow) {
+                const isShown = context.classList.contains('details-shown');
+                button.textContent = isShown
+                    ? this.config.messages.HIDE_DETAILS_TEXT
+                    : this.config.messages.SHOW_DETAILS_TEXT;
+            }
+        }
+
         toggleHelp(icon) {
-            const parentLabel = icon.parentElement;
-            const existingTooltip = parentLabel.querySelector('.qwelp-help-tooltip');
-            this.hideHelp();
-            if (!existingTooltip) {
+            if (icon.classList.contains('active')) {
+                this.hideHelp();
+            } else {
                 this.showHelp(icon);
             }
         }
 
         showHelp(icon) {
-            const text = icon.dataset.helpText;
-            const image = icon.dataset.helpImage;
+            this.hideHelp(); // Сначала скрыть все активные
+
+            const text = icon.dataset.helpText || icon.dataset.sectionTooltip || '';
+            const image = icon.dataset.helpImage || '';
             if (!text && !image) return;
 
-            const tooltip = document.createElement('div');
-            tooltip.className = 'qwelp-help-tooltip';
+            const tooltip = this.elements.tooltip;
+            let tooltipContent = '';
 
             if (text) {
-                const textEl = document.createElement('div');
-                textEl.className = 'qwelp-help-tooltip__text';
-                textEl.textContent = text;
-                tooltip.appendChild(textEl);
+                tooltipContent += `<div class="qwelp-help-tooltip__text">${text.replace(/\n/g, '<br>')}</div>`;
             }
             if (image) {
-                const imgEl = document.createElement('img');
-                imgEl.className = 'qwelp-help-tooltip__image';
-                imgEl.src = image;
-                imgEl.alt = 'Подсказка';
-                tooltip.appendChild(imgEl);
+                tooltipContent += `<img class="qwelp-help-tooltip__image" src="${image}" alt="Подсказка">`;
             }
 
-            icon.parentElement.appendChild(tooltip);
+            tooltip.innerHTML = tooltipContent;
 
-            requestAnimationFrame(() => {
-                tooltip.classList.add('active');
-            });
+            const iconRect = icon.getBoundingClientRect();
+
+            tooltip.style.left = `${iconRect.left + window.scrollX + (iconRect.width / 2)}px`;
+            tooltip.style.top = `${iconRect.bottom + window.scrollY + 5}px`;
+
+            tooltip.classList.add('active');
+            icon.classList.add('active');
         }
 
         hideHelp() {
-            const activeTooltip = this.elements.panel.querySelector('.qwelp-help-tooltip.active');
-            if (activeTooltip) {
-                activeTooltip.remove();
+            const activeIcon = this.elements.panel.querySelector('.help-icon.active');
+            if (activeIcon) {
+                activeIcon.classList.remove('active');
+            }
+            if (this.elements.tooltip) {
+                this.elements.tooltip.classList.remove('active');
             }
         }
 
@@ -166,10 +203,17 @@ BX.ready(function() {
             const code = target.dataset.code;
             if (!code) return;
 
-            const settingItem = target.closest('.setting-item');
+            const settingItem = target.closest('.setting-item, .header-control');
             if (!settingItem) return;
 
-            const type = settingItem.dataset.settingType;
+            let type;
+            if (settingItem.classList.contains('setting-item')) {
+                type = settingItem.dataset.settingType;
+            } else if (settingItem.classList.contains('header-control')) {
+                type = settingItem.dataset.settingType || settingItem.className.match(/header-control--type-(\w+)/)[1];
+            }
+
+            if (!type) return;
 
             if (type === 'checkbox') {
                 this.state[code] = target.checked;
@@ -250,11 +294,17 @@ BX.ready(function() {
 
         updateUIFromState() {
             Object.entries(this.state).forEach(([code, value]) => {
-                const items = this.elements.panel.querySelectorAll(`.setting-item[data-setting-code="${code}"]`);
+                const items = this.elements.panel.querySelectorAll(`.setting-item[data-setting-code="${code}"], .header-control[data-setting-code="${code}"]`);
                 if (items.length === 0) return;
 
                 items.forEach(item => {
-                    const type = item.dataset.settingType;
+                    let type;
+                    if (item.classList.contains('setting-item')) {
+                        type = item.dataset.settingType;
+                    } else if (item.classList.contains('header-control')) {
+                        type = item.dataset.settingType || item.className.match(/header-control--type-(\w+)/)[1];
+                    }
+                    if(!type) return;
 
                     if (type === 'checkbox') {
                         const input = item.querySelector(`input[data-code="${code}"]`);

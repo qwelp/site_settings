@@ -35,10 +35,16 @@ if (!class_exists('TemplateRenderer')) {
             $template = $this->template;
             $templatePath = $this->templatePath;
 
-            $hasSettings = !empty($section['settings']);
+            $allSettings = array_merge($section['settings'] ?? [], $section['HEADER_SETTINGS'] ?? []);
+            $hasSettings = !empty($allSettings);
             $hasSubsections = !empty($section['SUBSECTIONS']);
             $isCommonGroup = !empty($section['UF_COMMON_PROPERTY']);
             $isCollapsible = !empty($section['UF_COLLAPSED_BLOCK']);
+            $hasHeaderSettings = !empty($section['HEADER_SETTINGS']);
+
+            if (!$hasSettings && !$hasSubsections) {
+                return;
+            }
 
             $groupClasses = ['setting-group'];
             $groupAttributes = 'data-sortable-id="' . htmlspecialcharsbx($section['id']) . '"';
@@ -51,75 +57,167 @@ if (!class_exists('TemplateRenderer')) {
                 $groupAttributes .= ' data-common-group="true" data-group-code="' . htmlspecialcharsbx($section['id']) . '"';
             }
 
-            $isRadioCardGroup = $hasSubsections && (int)reset($section['SUBSECTIONS'])['DEPTH'] === 4;
+            $isRadioCardGroup = !empty($section['SUBSECTIONS']) && (int)reset($section['SUBSECTIONS'])['DEPTH'] === 4;
 
-            if ($isRadioCardGroup) {
-                ?>
-                <div class="<?= implode(' ', $groupClasses) ?>" <?= $groupAttributes ?>>
-                    <div class="setting-group__title">
-                        <?php if ($isSortable): ?><span class="drag-handle-icon"></span><?php endif; ?>
-                        <?= htmlspecialcharsbx($section['title']) ?>
-                    </div>
-                    <div class="setting-group__content">
-                        <div class="radio-card-group">
-                            <?php foreach ($section['SUBSECTIONS'] as $subSection): ?>
-                                <?php $this->renderRadioCard($subSection); ?>
-                            <?php endforeach; ?>
-                        </div>
-                        <?php if ($hasSettings): ?>
-                            <div class="setting-group__sub-controls">
-                                <?php $this->renderSettings($section['settings'], $isCommonGroup, $section['id']); ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-                <?php
-            } elseif ($hasSettings || $hasSubsections) {
-                ?>
-                <div class="<?= implode(' ', $groupClasses) ?>" <?= $groupAttributes ?>>
-                    <div class="setting-group__title">
-                        <?php if ($isSortable): ?><span class="drag-handle-icon"></span><?php endif; ?>
-                        <?= htmlspecialcharsbx($section['title']) ?>
-                    </div>
-                    <div class="setting-group__content">
-                        <?php if ($hasSettings) $this->renderSettings($section['settings'], $isCommonGroup, $section['id']); ?>
-                        <?php
-                        if ($hasSubsections) {
-                            $isChildrenSortable = !empty($section['UF_ENABLE_DRAG_AND_DROP']);
-                            echo $isChildrenSortable ? '<div class="js-sortable-container">' : '';
-                            foreach ($section['SUBSECTIONS'] as $subSection) {
-                                $this->renderGroup($subSection, $isChildrenSortable);
-                            }
-                            echo $isChildrenSortable ? '</div>' : '';
+            $detailSettings = [];
+            $normalSettings = [];
+
+            if ($hasSettings) {
+                foreach ($allSettings as $setting) {
+                    if (empty($setting['isHeaderSetting'])) {
+                        if (!empty($setting['detailProperty'])) {
+                            $detailSettings[] = $setting;
+                        } else {
+                            $normalSettings[] = $setting;
                         }
-                        ?>
-                    </div>
-                </div>
-                <?php
+                    }
+                }
             }
+            $hasDetailSettings = !empty($detailSettings);
+            ?>
+            <div class="<?= implode(' ', $groupClasses) ?>" <?= $groupAttributes ?>>
+                <div class="setting-group__title">
+                    <?php if ($isSortable): ?><span class="drag-handle-icon"></span><?php endif; ?>
+                    <span class="setting-group__title-text"><?= htmlspecialcharsbx($section['title']) ?></span>
+                    <?php if (!empty($section['UF_SECTION_TOOLTIP'])): ?>
+                        <span class="help-icon-wrapper">
+                            <span class="help-icon"
+                                  data-section-tooltip="<?= htmlspecialcharsbx($section['UF_SECTION_TOOLTIP']) ?>"
+                                  title="<?= Loc::getMessage('QWELP_SITE_SETTINGS_HELP_ICON_TITLE') ?>">?</span>
+                        </span>
+                    <?php endif; ?>
+                    <?php if ($hasHeaderSettings): ?>
+                        <div class="setting-group__header-controls">
+                            <?php
+                            $isHeaderRender = true;
+                            foreach ($section['HEADER_SETTINGS'] as $setting) {
+                                include $templatePath;
+                            }
+                            unset($isHeaderRender);
+                            ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <div class="setting-group__content">
+                    <?php if ($isRadioCardGroup): ?>
+                        <div class="radio-card-group">
+                            <?php foreach ($section['SUBSECTIONS'] as $subSection) { $this->renderRadioCard($subSection); } ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php
+                    if ($isCommonGroup) $commonRadioName = htmlspecialcharsbx($section['id']);
+                    foreach ($normalSettings as $setting) {
+                        include $templatePath;
+                    }
+
+                    if ($hasSubsections && !$isRadioCardGroup) {
+                        $isChildrenSortable = !empty($section['UF_ENABLE_DRAG_AND_DROP']);
+                        echo $isChildrenSortable ? '<div class="js-sortable-container">' : '';
+                        foreach ($section['SUBSECTIONS'] as $subSection) {
+                            $this->renderGroup($subSection, $isChildrenSortable);
+                        }
+                        echo $isChildrenSortable ? '</div>' : '';
+                    }
+
+                    if ($hasDetailSettings):
+                        $toggleText = !empty($section['UF_HIDDEN_ELEMENTS_TITLE'])
+                            ? htmlspecialcharsbx($section['UF_HIDDEN_ELEMENTS_TITLE'])
+                            : Loc::getMessage('QWELP_SITE_SETTINGS_SHOW_DETAILS');
+                        $toggleDataAttr = !empty($section['UF_HIDDEN_ELEMENTS_TITLE'])
+                            ? 'data-text-show="' . htmlspecialcharsbx($section['UF_HIDDEN_ELEMENTS_TITLE']) . '"'
+                            : '';
+                        ?>
+                        <a class="detail-settings-toggle" role="button" <?= $toggleDataAttr ?>>
+                            <?= $toggleText ?>
+                        </a>
+                        <div class="detail-settings-container">
+                            <?php
+                            foreach ($detailSettings as $setting) {
+                                include $templatePath;
+                            }
+                            ?>
+                        </div>
+                    <?php endif; ?>
+                    <?php if (isset($commonRadioName)) unset($commonRadioName); ?>
+                </div>
+            </div>
+            <?php
         }
 
-        private function renderRadioCard(array $subSection): void {
+        private function renderRadioCard(array $subSection): void
+        {
             $templatePath = $this->templatePath;
             $isFirstCard = false;
             $radioGroupName = 'radio_card_group_' . htmlspecialcharsbx($subSection['PARENT_ID']);
             $radioId = 'radio_card_' . htmlspecialcharsbx($subSection['id']);
+
+            $allSettings = array_merge($subSection['settings'] ?? [], $subSection['HEADER_SETTINGS'] ?? []);
+
+            $detailSettings = [];
+            $normalSettings = [];
+            if (!empty($allSettings)) {
+                foreach ($allSettings as $setting) {
+                    if (!empty($setting['detailProperty'])) {
+                        $detailSettings[] = $setting;
+                    } else {
+                        $normalSettings[] = $setting;
+                    }
+                }
+            }
+            $hasDetailSettings = !empty($detailSettings);
             ?>
             <div class="radio-card">
                 <input type="radio" name="<?= $radioGroupName ?>" id="<?= $radioId ?>" class="radio-card__input" <?= $isFirstCard ? 'checked' : '' ?>>
                 <label for="<?= $radioId ?>" class="radio-card__label">
-                    <div class="radio-card__title"><?= htmlspecialcharsbx($subSection['title']) ?></div>
+                    <div class="radio-card__header">
+                        <div class="radio-card__title">
+                            <span><?= htmlspecialcharsbx($subSection['title']) ?></span>
+                            <?php if (!empty($subSection['UF_SECTION_TOOLTIP'])): ?>
+                                <span class="help-icon-wrapper">
+                                    <span class="help-icon"
+                                          data-section-tooltip="<?= htmlspecialcharsbx($subSection['UF_SECTION_TOOLTIP']) ?>"
+                                          title="<?= Loc::getMessage('QWELP_SITE_SETTINGS_HELP_ICON_TITLE') ?>">?</span>
+                                </span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                     <?php
                     if (!empty($subSection['PICTURE'])) {
                         $fileId = (int)$subSection['PICTURE'];
                         if ($fileId > 0 && ($filePath = CFile::GetPath($fileId))) {
-                            ?><img class="radio-card__image" src="<?= htmlspecialcharsbx($filePath) ?>" alt="<?= htmlspecialcharsbx($subSection['title']) ?>" loading="lazy"><?php
+                            ?>
+                            <div class="radio-card__image-wrapper">
+                                <img class="radio-card__image" src="<?= htmlspecialcharsbx($filePath) ?>" alt="<?= htmlspecialcharsbx($subSection['title']) ?>" loading="lazy">
+                            </div>
+                            <?php
                         }
                     }
                     ?>
-                    <?php if (!empty($subSection['settings'])): ?>
+                    <?php if (!empty($normalSettings) || !empty($detailSettings)): ?>
                         <div class="radio-card__content">
-                            <?php foreach ($subSection['settings'] as $setting) include $templatePath; ?>
+                            <?php foreach ($normalSettings as $setting) {
+                                include $templatePath;
+                            } ?>
+
+                            <?php if ($hasDetailSettings):
+                                $toggleText = !empty($subSection['UF_HIDDEN_ELEMENTS_TITLE'])
+                                    ? htmlspecialcharsbx($subSection['UF_HIDDEN_ELEMENTS_TITLE'])
+                                    : Loc::getMessage('QWELP_SITE_SETTINGS_SHOW_DETAILS');
+                                $toggleDataAttr = !empty($subSection['UF_HIDDEN_ELEMENTS_TITLE'])
+                                    ? 'data-text-show="' . htmlspecialcharsbx($subSection['UF_HIDDEN_ELEMENTS_TITLE']) . '"'
+                                    : '';
+                                ?>
+                                <a class="detail-settings-toggle" role="button" <?= $toggleDataAttr ?>>
+                                    <?= $toggleText ?>
+                                </a>
+                                <div class="detail-settings-container">
+                                    <?php foreach ($detailSettings as $setting) {
+                                        include $templatePath;
+                                    } ?>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     <?php endif; ?>
                 </label>
@@ -130,7 +228,10 @@ if (!class_exists('TemplateRenderer')) {
         private function renderSettings(array $settings, bool $isCommonGroup, string $groupId): void {
             $templatePath = $this->templatePath;
             if ($isCommonGroup) $commonRadioName = htmlspecialcharsbx($groupId);
-            foreach ($settings as $setting) include $templatePath;
+            foreach ($settings as $setting) {
+                if (!empty($setting['isHeaderSetting'])) continue;
+                include $templatePath;
+            }
             unset($commonRadioName);
         }
     }
@@ -148,7 +249,9 @@ $renderer = new TemplateRenderer($this, __DIR__ . '/_setting_renderer.php');
             messages: {
                 SETTINGS_SAVED: '<?= CUtil::JSEscape(Loc::getMessage('QWELP_SITE_SETTINGS_SETTINGS_SAVED')) ?>',
                 SAVE_ERROR: '<?= CUtil::JSEscape(Loc::getMessage('QWELP_SITE_SETTINGS_SAVE_ERROR')) ?>',
-                RESET_CONFIRM: '<?= CUtil::JSEscape(Loc::getMessage('QWELP_SITE_SETTINGS_RESET_CONFIRM')) ?>'
+                RESET_CONFIRM: '<?= CUtil::JSEscape(Loc::getMessage('QWELP_SITE_SETTINGS_RESET_CONFIRM')) ?>',
+                SHOW_DETAILS_TEXT: '<?= CUtil::JSEscape(Loc::getMessage('QWELP_SITE_SETTINGS_SHOW_DETAILS')) ?>',
+                HIDE_DETAILS_TEXT: '<?= CUtil::JSEscape(Loc::getMessage('QWELP_SITE_SETTINGS_HIDE_DETAILS')) ?>'
             }
         };
     </script>
@@ -182,7 +285,14 @@ $renderer = new TemplateRenderer($this, __DIR__ . '/_setting_renderer.php');
                                             <div class="tabs-header">
                                                 <?php foreach (array_values($sectionsLevel2) as $j => $sectionLevel2): ?>
                                                     <div class="tab <?= $j === 0 ? 'active' : '' ?>" data-tab-id="<?= htmlspecialcharsbx($sectionLevel2['id']) ?>">
-                                                        <?= htmlspecialcharsbx($sectionLevel2['title']) ?>
+                                                        <span><?= htmlspecialcharsbx($sectionLevel2['title']) ?></span>
+                                                        <?php if (!empty($sectionLevel2['UF_SECTION_TOOLTIP'])): ?>
+                                                            <span class="help-icon-wrapper">
+                                                                <span class="help-icon"
+                                                                      data-section-tooltip="<?= htmlspecialcharsbx($sectionLevel2['UF_SECTION_TOOLTIP']) ?>"
+                                                                      title="<?= Loc::getMessage('QWELP_SITE_SETTINGS_HELP_ICON_TITLE') ?>">?</span>
+                                                            </span>
+                                                        <?php endif; ?>
                                                     </div>
                                                 <?php endforeach; ?>
                                             </div>

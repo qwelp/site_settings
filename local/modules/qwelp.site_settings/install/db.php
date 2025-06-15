@@ -351,6 +351,86 @@ function InstallDB(): bool
             return false;
         }
 
+        $fields = [
+            // ENTITY_ID задаёт, для каких сущностей создаётся поле.
+            // Для разделов: IBLOCK_{ID}_SECTION
+            'ENTITY_ID'           => "IBLOCK_{$iblockId}_SECTION",
+            // MACHINE_NAME поля — обязательно с префиксом UF_
+            'FIELD_NAME'          => 'UF_HIDDEN_ELEMENTS_TITLE',
+            // Тип поля — строка
+            'USER_TYPE_ID'        => 'string',
+            'XML_ID'              => '',
+            'SORT'                => 100,
+            'MULTIPLE'            => 'N',
+            'MANDATORY'           => 'N',
+            'SHOW_FILTER'         => 'S',
+            'SHOW_IN_LIST'        => 'Y',
+            'EDIT_IN_LIST'        => 'Y',
+            'IS_SEARCHABLE'       => 'N',
+            // Дополнительные настройки — размер поля в форме
+            'SETTINGS'            => [
+                'SIZE' => 50,
+                'ROWS' => 1,
+            ],
+            // Названия поля в админке
+            'EDIT_FORM_LABEL'     => [
+                'ru' => 'Название для спрятанных элементов',
+                'en' => 'Title for hidden elements',
+            ],
+            'LIST_COLUMN_LABEL'   => [
+                'ru' => 'Название для спрятанных элементов',
+                'en' => 'Title for hidden elements',
+            ],
+            'LIST_FILTER_LABEL'   => [
+                'ru' => 'Название для спрятанных элементов',
+                'en' => 'Title for hidden elements',
+            ],
+        ];
+
+        $newId = $oUserTypeEntity->Add($fields);
+        if (!$newId) {
+            // В случае ошибки выведем её
+            global $APPLICATION;
+            $APPLICATION->ThrowException($oUserTypeEntity->LAST_ERROR);
+            return false;
+        }
+
+        $sectionTooltipUserField = [
+            'ENTITY_ID'         => 'IBLOCK_' . $iblockId . '_SECTION',
+            'FIELD_NAME'        => 'UF_SECTION_TOOLTIP',
+            'USER_TYPE_ID'      => 'string', // можно использовать 'text' для многострочного поля
+            'XML_ID'            => 'UF_SECTION_TOOLTIP',
+            'SORT'              => 540,
+            'MULTIPLE'          => 'N',
+            'MANDATORY'         => 'N',
+            'SHOW_FILTER'       => 'N',
+            'SHOW_IN_LIST'      => 'Y',
+            'EDIT_IN_LIST'      => 'Y',
+            'IS_SEARCHABLE'     => 'N',
+            'SETTINGS'          => [
+                'DEFAULT_VALUE' => '',
+                'SIZE' => 40,
+                'ROWS' => 5, // количество строк, если USER_TYPE_ID == 'text'
+                'MIN_LENGTH' => 0,
+                'MAX_LENGTH' => 0,
+                'REGEXP' => ''
+            ],
+            'EDIT_FORM_LABEL'   => ['ru' => 'Подсказка раздела', 'en' => 'Section Tooltip'],
+            'LIST_COLUMN_LABEL' => ['ru' => 'Подсказка', 'en' => 'Tooltip'],
+            'LIST_FILTER_LABEL' => ['ru' => 'Подсказка', 'en' => 'Tooltip'],
+            'HELP_MESSAGE'      => ['ru' => 'Текст подсказки, отображаемый рядом с заголовком раздела.', 'en' => 'Tooltip text displayed next to the section title.'],
+        ];
+
+        $sectionTooltipUserFieldId = $oUserTypeEntity->Add($sectionTooltipUserField);
+        if (!$sectionTooltipUserFieldId) {
+            if ($ex = $APPLICATION->GetException()) {
+                $APPLICATION->ThrowException(Loc::getMessage('QWELP_SITE_SETTINGS_UF_ADD_ERROR') . ': ' . $ex->GetString());
+            } else {
+                $APPLICATION->ThrowException(Loc::getMessage('QWELP_SITE_SETTINGS_UF_ADD_ERROR_UNKNOWN'));
+            }
+            return false;
+        }
+
         // === Свойства инфоблока ===
         $ibp = new \CIBlockProperty();
 
@@ -391,6 +471,27 @@ function InstallDB(): bool
         $enum = new \CIBlockPropertyEnum();
         $enum->Add(['PROPERTY_ID' => $showTitlePropertyId, 'VALUE' => 'Да',  'DEF' => 'Y']);
 
+        // HEADER_TITLE — флаг отображения в заголовке для свернутого блока
+        $showTitleProperty = [
+            'IBLOCK_ID'     => 110,
+            'NAME'          => 'Отображать в заголовке для свернутого блока',
+            'CODE'          => 'HEADER_TITLE',
+            'PROPERTY_TYPE' => 'L',    // список
+            'LIST_TYPE'     => 'C',    // чекбоксы
+            'MULTIPLE'      => 'N',
+            'IS_REQUIRED'   => 'N',
+            'HINT'          => 'Отображать заголовок на странице',
+        ];
+        $showTitlePropertyId = $ibp->Add($showTitleProperty);
+        if (!$showTitlePropertyId) {
+            $APPLICATION->ThrowException($ibp->LAST_ERROR);
+            return false;
+        }
+
+        // Значения списка: «Нет» и «Да» (по умолчанию «Да»)
+        $enum = new \CIBlockPropertyEnum();
+        $enum->Add(['PROPERTY_ID' => $showTitlePropertyId, 'VALUE' => 'Да',  'DEF' => 'N']);
+
 
         // DETAIL_PROPERTY — флаг отображения заголовка на сайте
         $showDetailProperty = [
@@ -411,7 +512,7 @@ function InstallDB(): bool
 
         // Значения списка: «Нет» и «Да» (по умолчанию «Да»)
         $enum = new \CIBlockPropertyEnum();
-        $enum->Add(['PROPERTY_ID' => $showDetailPropertyId, 'VALUE' => 'Да',  'DEF' => 'Y']);
+        $enum->Add(['PROPERTY_ID' => $showDetailPropertyId, 'VALUE' => 'Да',  'DEF' => 'N']);
 
 
         // HELP_TEXT — подсказка
