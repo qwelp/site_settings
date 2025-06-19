@@ -14,19 +14,12 @@ use Bitrix\Main\Engine\ActionFilter;
 use Bitrix\Main\Engine\Contract\Controllerable;
 use Bitrix\Main\Loader;
 use Bitrix\Main\Localization\Loc;
+use Exception;
+use Qwelp\SiteSettings\OptionsManager;
 use Qwelp\SiteSettings\SettingsManager;
-
-// Подключаем менеджер настроек, если он еще не был подключен
-$managerPath = $_SERVER['DOCUMENT_ROOT'] . '/local/modules/qwelp.site_settings/lib/SettingsManager.php';
-if (file_exists($managerPath)) {
-    require_once($managerPath);
-}
 
 class QwelpSiteSettingsComponent extends CBitrixComponent implements Controllerable
 {
-    /**
-     * {@inheritdoc}
-     */
     public function configureActions(): array
     {
         return [
@@ -40,138 +33,134 @@ class QwelpSiteSettingsComponent extends CBitrixComponent implements Controllera
         ];
     }
 
-    /**
-     * AJAX-действие для сохранения настроек.
-     * @param array $settings Ключ-значение массив настроек.
-     * @param string $siteId ID сайта.
-     * @return array
-     * @throws \Exception
-     */
     public function saveSettingsAction(array $settings, string $siteId): array
     {
         if (!Loader::includeModule('qwelp.site_settings')) {
-            throw new \Exception(Loc::getMessage('QWELP_SITE_SETTINGS_MODULE_NOT_INSTALLED'));
+            return ['success' => false, 'message' => 'Module not installed'];
         }
-        SettingsManager::saveSettings($siteId, $settings);
-        return [
-            'success' => true,
-            'message' => Loc::getMessage('QWELP_SITE_SETTINGS_AJAX_SETTINGS_SAVED'),
-        ];
+
+        try {
+            $result = OptionsManager::save($settings, $siteId);
+            return [
+                'success' => $result,
+                'message' => $result ? Loc::getMessage('QWELP_SITE_SETTINGS_AJAX_SETTINGS_SAVED') : 'Save error',
+            ];
+        } catch (Exception $e) {
+            return ['success' => false, 'message' => $e->getMessage()];
+        }
     }
 
-    /**
-     * Вспомогательная рекурсивная функция. Собирает "заголовочные" настройки
-     * и помечает их в исходном массиве.
-     *
-     * @param array &$items Массив элементов для обхода (по ссылке).
-     * @return array Массив собранных заголовочных настроек.
-     */
-    private function collectAndMarkHeaderSettings(array &$items): array
+    private function mergeSettingsWithOptions(array &$sections, array $options): void
+    {
+        foreach ($sections as &$section) {
+            if (!empty($section['settings'])) {
+                foreach ($section['settings'] as &$setting) {
+                    if (isset($options[$setting['code']])) {
+                        $setting['value'] = $options[$setting['code']];
+                    }
+                }
+                unset($setting);
+            }
+
+            if (!empty($section['SUBSECTIONS'])) {
+                $this->mergeSettingsWithOptions($section['SUBSECTIONS'], $options);
+            }
+        }
+        unset($section);
+    }
+
+    private function prepareRadioCardGroups(array &$sections): void
+    {
+        foreach ($sections as &$section) {
+            $isRadioCardParent = !empty($section['SUBSECTIONS']) && (int)reset($section['SUBSECTIONS'])['DEPTH'] === 4;
+
+            if ($isRadioCardParent) {
+                $firstCardId = reset($section['SUBSECTIONS'])['id'] ?? null;
+                if ($firstCardId) {
+                    $section['settings'][] = [
+                        'code' => $section['id'],
+                        'type' => 'radioCard',
+                        'value' => $firstCardId,
+                        'options' => []
+                    ];
+                }
+            }
+
+            if (!empty($section['SUBSECTIONS'])) {
+                $this->prepareRadioCardGroups($section['SUBSECTIONS']);
+            }
+        }
+        unset($section);
+    }
+
+    private function extractHeaderSettings(array $items): array
     {
         $headerSettings = [];
         $remainingItems = [];
 
         foreach ($items as $item) {
-            if (!is_array($item)) {
-                $remainingItems[] = $item;
-                continue;
-            }
-
-            if (isset($item['code'])) {
-                if (!empty($item['headerTitle'])) {
-                    $headerSettings[] = $item;
-                    $item['isHeaderSetting'] = true; // Пометка остается для консистентности
-                } else {
-                    $remainingItems[] = $item;
-                }
+            if (isset($item['code']) && !empty($item['headerTitle'])) {
+                $item['isHeaderSetting'] = true;
+                $headerSettings[] = $item;
             } else {
-                $children = array_merge($item['settings'] ?? [], $item['SUBSECTIONS'] ?? []);
-                if (!empty($children)) {
-                    $collected = $this->collectAndMarkHeaderSettings($children);
-                    if (!empty($collected)) {
-                        $headerSettings = array_merge($headerSettings, $collected);
-                        $item['settings'] = array_values(array_filter($children, fn($child) => isset($child['code'])));
-                        $item['SUBSECTIONS'] = array_values(array_filter($children, fn($child) => !isset($child['code'])));
-                    }
-                }
                 $remainingItems[] = $item;
             }
         }
-
-        $items = $remainingItems; // Обновляем исходный массив, удаляя из него header-настройки
-        return $headerSettings;
+        return [$headerSettings, $remainingItems];
     }
 
-    /**
-     * Основная рекурсивная функция для подготовки секций.
-     *
-     * @param array &$sections Массив секций для обработки (по ссылке).
-     * @return void
-     */
     private function prepareSectionsRecursive(array &$sections): void
     {
         foreach ($sections as &$section) {
             $section['HEADER_SETTINGS'] = $section['HEADER_SETTINGS'] ?? [];
-
-            // Если блок сворачиваемый, запускаем для него сбор заголовочных настроек
             if (!empty($section['UF_COLLAPSED_BLOCK'])) {
                 $isRadioCardParent = !empty($section['SUBSECTIONS']) && (int)reset($section['SUBSECTIONS'])['DEPTH'] === 4;
-
                 if ($isRadioCardParent) {
-                    // 1. Собираем header-настройки самого родительского блока
-                    if (!empty($section['settings'])) {
-                        $section['HEADER_SETTINGS'] = array_merge($section['HEADER_SETTINGS'], $this->collectAndMarkHeaderSettings($section['settings']));
-                    }
-                    // 2. Для каждой radio-карточки собираем её собственные header-настройки
                     foreach ($section['SUBSECTIONS'] as &$subSection) {
                         if (!empty($subSection['settings'])) {
-                            $subSection['HEADER_SETTINGS'] = $this->collectAndMarkHeaderSettings($subSection['settings']);
+                            [$header, $remaining] = $this->extractHeaderSettings($subSection['settings']);
+                            $subSection['HEADER_SETTINGS'] = $header;
+                            $subSection['settings'] = $remaining;
                         } else {
                             $subSection['HEADER_SETTINGS'] = [];
                         }
                     }
                     unset($subSection);
-                } else {
-                    // Стандартная логика: собираем все header-настройки из всех потомков
-                    $children = array_merge($section['settings'] ?? [], $section['SUBSECTIONS'] ?? []);
-                    if (!empty($children)) {
-                        $section['HEADER_SETTINGS'] = array_merge($section['HEADER_SETTINGS'], $this->collectAndMarkHeaderSettings($children));
-                        $section['settings'] = array_values(array_filter($children, fn($child) => isset($child['code'])));
-                        $section['SUBSECTIONS'] = array_values(array_filter($children, fn($child) => !isset($child['code'])));
+                }
+                $itemsToScan = array_merge($section['settings'] ?? [], $section['SUBSECTIONS'] ?? []);
+                if (!$isRadioCardParent) {
+                    foreach ($itemsToScan as &$itemToScan) {
+                        if (isset($itemToScan['SUBSECTIONS'])) {
+                            $this->prepareSectionsRecursive($itemToScan['SUBSECTIONS']);
+                        }
                     }
+                    unset($itemToScan);
+                }
+                [$header, $remaining] = $this->extractHeaderSettings($itemsToScan);
+                if (!empty($header)) {
+                    $section['HEADER_SETTINGS'] = array_merge($section['HEADER_SETTINGS'], $header);
+                    $section['settings'] = array_values(array_filter($remaining, fn($child) => isset($child['code'])));
+                    $section['SUBSECTIONS'] = array_values(array_filter($remaining, fn($child) => !isset($child['code'])));
                 }
             }
-
-            if (!empty($section['SUBSECTIONS'])) {
+            if (!empty($section['SUBSECTIONS']) && empty($section['UF_COLLAPSED_BLOCK'])) {
                 $this->prepareSectionsRecursive($section['SUBSECTIONS']);
             }
         }
         unset($section);
     }
 
-    /**
-     * Рекурсивно устанавливает значения по умолчанию для настроек, у которых они отсутствуют.
-     * Для типов 'select', 'radio', 'radioImage' устанавливает значение первого элемента из опций.
-     *
-     * @param array &$sections Массив секций для обработки.
-     * @return void
-     */
     private function prepareDefaultValuesRecursive(array &$sections): void
     {
         foreach ($sections as &$section) {
             if (!empty($section['settings']) && is_array($section['settings'])) {
                 foreach ($section['settings'] as &$setting) {
                     $valueIsSet = isset($setting['value']) && $setting['value'] !== null && $setting['value'] !== '';
-
                     if (!$valueIsSet) {
                         $type = $setting['type'];
-
                         if (empty($type) && !empty($setting['options']) && is_array($setting['options'])) {
-                            if (!isset($setting['options']['color'])) {
-                                $type = 'select';
-                            }
+                            if (!isset($setting['options']['color'])) $type = 'select';
                         }
-
                         if (in_array($type, ['select', 'radio', 'radioImage'])) {
                             $options = $setting['options'];
                             if (!empty($options) && is_array($options)) {
@@ -185,7 +174,6 @@ class QwelpSiteSettingsComponent extends CBitrixComponent implements Controllera
                 }
                 unset($setting);
             }
-
             if (!empty($section['SUBSECTIONS']) && is_array($section['SUBSECTIONS'])) {
                 $this->prepareDefaultValuesRecursive($section['SUBSECTIONS']);
             }
@@ -193,40 +181,48 @@ class QwelpSiteSettingsComponent extends CBitrixComponent implements Controllera
         unset($section);
     }
 
-
-    /**
-     * {@inheritdoc}
-     */
     public function executeComponent()
     {
         global $APPLICATION, $USER;
 
         try {
             if (!Loader::includeModule('qwelp.site_settings')) {
-                throw new \Exception(Loc::getMessage('QWELP_SITE_SETTINGS_MODULE_NOT_INSTALLED'));
+                throw new Exception(Loc::getMessage('QWELP_SITE_SETTINGS_MODULE_NOT_INSTALLED'));
             }
 
             $siteId = $this->arParams['SITE_ID'] ?? Application::getInstance()->getContext()->getSite();
             $cacheTime = ($USER->IsAdmin()) ? 0 : ($this->arParams['CACHE_TIME'] ?? 3600);
 
-            if ($this->startResultCache($cacheTime, [$siteId, $USER->GetGroups()])) {
-                $settings = SettingsManager::getSettings($siteId);
+            $cacheId = $siteId . '|' . $USER->GetGroups();
 
-                if (!empty($settings['sections'])) {
-                    $this->prepareDefaultValuesRecursive($settings['sections']);
-                    $this->prepareSectionsRecursive($settings['sections']);
+            if ($cacheTime > 0) {
+                $optionsFilePath = OptionsManager::getFilePath($siteId);
+                $optionsFileMTime = file_exists($optionsFilePath) ? filemtime($optionsFilePath) : 'nofile';
+                $cacheId .= '|' . $optionsFileMTime;
+            }
+
+            if ($this->startResultCache($cacheTime, $cacheId)) {
+                $settingsStructure = SettingsManager::getSettings($siteId);
+                $savedOptions = OptionsManager::getAll($siteId);
+
+                if (!empty($settingsStructure['sections'])) {
+                    $this->prepareDefaultValuesRecursive($settingsStructure['sections']);
+                    if (!empty($savedOptions)) {
+                        $this->mergeSettingsWithOptions($settingsStructure['sections'], $savedOptions);
+                    }
+                    $this->prepareRadioCardGroups($settingsStructure['sections']);
+                    $this->prepareSectionsRecursive($settingsStructure['sections']);
                 }
 
-                $this->arResult['SETTINGS'] = $settings;
+                $this->arResult['SETTINGS'] = $settingsStructure;
                 $this->arResult['SITE_ID'] = $siteId;
-
                 $this->setResultCacheKeys([]);
                 $this->includeComponentTemplate();
             }
 
             $APPLICATION->SetTitle(Loc::getMessage('QWELP_SITE_SETTINGS_PAGE_TITLE'));
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->abortResultCache();
             ShowError($e->getMessage());
         }

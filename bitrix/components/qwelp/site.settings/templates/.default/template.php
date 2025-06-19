@@ -11,11 +11,9 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
 
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\Web\Json;
+use Qwelp\SiteSettings\OptionsManager;
 
-// Подключаем JS-библиотеку для Drag-n-Drop из папки шаблона
 $this->addExternalJS($this->GetFolder().'/Sortable.min.js');
-
-// Подключаем файл со вспомогательными функциями
 require_once __DIR__ . '/functions.php';
 
 if (!class_exists('TemplateRenderer')) {
@@ -64,7 +62,7 @@ if (!class_exists('TemplateRenderer')) {
 
             if ($hasSettings) {
                 foreach ($allSettings as $setting) {
-                    if (empty($setting['isHeaderSetting'])) {
+                    if (empty($setting['isHeaderSetting']) && $setting['type'] !== 'radioCard') {
                         if (!empty($setting['detailProperty'])) {
                             $detailSettings[] = $setting;
                         } else {
@@ -77,7 +75,19 @@ if (!class_exists('TemplateRenderer')) {
             ?>
             <div class="<?= implode(' ', $groupClasses) ?>" <?= $groupAttributes ?>>
                 <div class="setting-group__title">
-                    <?php if ($isSortable): ?><span class="drag-handle-icon"></span><?php endif; ?>
+                    <?php if ($isSortable): ?>
+                        <span class="drag-handle-icon"></span>
+                        <?php // FIX: Добавляем чекбокс активности для сортируемых элементов ?>
+                        <div class="setting-group__activity-toggle">
+                            <label class="toggle-switch">
+                                <input type="checkbox"
+                                       class="toggle-switch__input"
+                                       data-code="activity_<?= htmlspecialcharsbx($section['id']) ?>"
+                                >
+                                <span class="toggle-switch__slider"></span>
+                            </label>
+                        </div>
+                    <?php endif; ?>
                     <span class="setting-group__title-text"><?= htmlspecialcharsbx($section['title']) ?></span>
                     <?php if (!empty($section['UF_SECTION_TOOLTIP'])): ?>
                         <span class="help-icon-wrapper">
@@ -102,19 +112,26 @@ if (!class_exists('TemplateRenderer')) {
                 <div class="setting-group__content">
                     <?php if ($isRadioCardGroup): ?>
                         <div class="radio-card-group">
-                            <?php foreach ($section['SUBSECTIONS'] as $subSection) { $this->renderRadioCard($subSection); } ?>
+                            <?php
+                            $groupCode = $section['id'];
+                            foreach ($section['SUBSECTIONS'] as $subSection) {
+                                $this->renderRadioCard($subSection, $groupCode);
+                            }
+                            ?>
                         </div>
                     <?php endif; ?>
 
                     <?php
-                    if ($isCommonGroup) $commonRadioName = htmlspecialcharsbx($section['id']);
+                    if ($isCommonGroup) {
+                        $commonRadioName = htmlspecialcharsbx($section['id']);
+                    }
                     foreach ($normalSettings as $setting) {
                         include $templatePath;
                     }
 
                     if ($hasSubsections && !$isRadioCardGroup) {
                         $isChildrenSortable = !empty($section['UF_ENABLE_DRAG_AND_DROP']);
-                        echo $isChildrenSortable ? '<div class="js-sortable-container">' : '';
+                        echo $isChildrenSortable ? '<div class="js-sortable-container" data-sort-group-code="' . htmlspecialcharsbx($section['id']) . '">' : '';
                         foreach ($section['SUBSECTIONS'] as $subSection) {
                             $this->renderGroup($subSection, $isChildrenSortable);
                         }
@@ -146,12 +163,11 @@ if (!class_exists('TemplateRenderer')) {
             <?php
         }
 
-        private function renderRadioCard(array $subSection): void
+        private function renderRadioCard(array $subSection, string $groupCode): void
         {
             $templatePath = $this->templatePath;
-            $isFirstCard = false;
-            $radioGroupName = 'radio_card_group_' . htmlspecialcharsbx($subSection['PARENT_ID']);
             $radioId = 'radio_card_' . htmlspecialcharsbx($subSection['id']);
+            $cardId = htmlspecialcharsbx($subSection['id']);
 
             $allSettings = array_merge($subSection['settings'] ?? [], $subSection['HEADER_SETTINGS'] ?? []);
 
@@ -169,7 +185,13 @@ if (!class_exists('TemplateRenderer')) {
             $hasDetailSettings = !empty($detailSettings);
             ?>
             <div class="radio-card">
-                <input type="radio" name="<?= $radioGroupName ?>" id="<?= $radioId ?>" class="radio-card__input" <?= $isFirstCard ? 'checked' : '' ?>>
+                <input type="radio"
+                       name="<?= htmlspecialcharsbx($groupCode) ?>"
+                       id="<?= $radioId ?>"
+                       class="radio-card__input"
+                       data-code="<?= htmlspecialcharsbx($groupCode) ?>"
+                       value="<?= $cardId ?>"
+                >
                 <label for="<?= $radioId ?>" class="radio-card__label">
                     <div class="radio-card__header">
                         <div class="radio-card__title">
@@ -238,11 +260,13 @@ if (!class_exists('TemplateRenderer')) {
 }
 
 $renderer = new TemplateRenderer($this, __DIR__ . '/_setting_renderer.php');
+$savedValues = OptionsManager::getAll($arResult['SITE_ID']);
 ?>
 <div id="qwelp-site-settings-root" class="qwelp-site-settings">
     <script>
         window.QwelpSettingsConfig = {
             settings: <?= Json::encode($arResult['SETTINGS']) ?>,
+            savedValues: <?= Json::encode($savedValues) ?>,
             siteId: '<?= CUtil::JSEscape($arResult['SITE_ID']) ?>',
             componentName: '<?= CUtil::JSEscape($this->getComponent()->getName()) ?>',
             signedParams: '<?= CUtil::JSEscape($this->getComponent()->getSignedParameters()) ?>',
@@ -302,7 +326,20 @@ $renderer = new TemplateRenderer($this, __DIR__ . '/_setting_renderer.php');
                                                 <?php
                                                 $isChildrenSortable = !empty($sectionLevel2['UF_ENABLE_DRAG_AND_DROP']);
                                                 $sectionsLevel3 = array_filter($sectionLevel2['SUBSECTIONS'] ?? [], fn($sec) => (int)$sec['DEPTH'] === 3);
-                                                if ($isChildrenSortable) echo '<div class="js-sortable-container">';
+
+                                                if ($isChildrenSortable) {
+                                                    $sortKey = 'blocks_sort_' . $sectionLevel2['id'];
+                                                    if (isset($savedValues[$sortKey]) && is_array($savedValues[$sortKey])) {
+                                                        $savedOrder = array_flip($savedValues[$sortKey]);
+                                                        uasort($sectionsLevel3, function ($a, $b) use ($savedOrder) {
+                                                            $posA = $savedOrder[$a['id']] ?? 999;
+                                                            $posB = $savedOrder[$b['id']] ?? 999;
+                                                            return $posA <=> $posB;
+                                                        });
+                                                    }
+                                                }
+
+                                                if ($isChildrenSortable) echo '<div class="js-sortable-container" data-sort-group-code="' . htmlspecialcharsbx($sectionLevel2['id']) . '">';
                                                 foreach ($sectionsLevel3 as $sectionLevel3) {
                                                     $renderer->renderGroup($sectionLevel3, $isChildrenSortable);
                                                 }

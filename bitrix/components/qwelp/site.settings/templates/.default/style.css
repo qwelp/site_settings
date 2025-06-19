@@ -84,8 +84,13 @@
 .setting-group__title .help-icon-wrapper {
     margin-left: var(--qss-space-s);
 }
+/* FIX: Стили для переключателя активности */
+.setting-group__activity-toggle {
+    flex-shrink: 0;
+    margin-right: var(--qss-space-m);
+}
 .setting-group__header-controls {
-    display: none;
+    display: none; /* Скрываем по умолчанию */
     align-items: center;
     gap: var(--qss-space-l);
     flex-shrink: 0;
@@ -101,7 +106,10 @@
 .setting-group__content { transition: max-height 0.3s ease-out, padding-top 0.3s ease-out; overflow: hidden; }
 .is-collapsible:not([data-collapsed="true"]) > .setting-group__content { max-height: 50rem; padding-top: var(--qss-space-m); }
 .is-collapsible[data-collapsed="true"] > .setting-group__content { max-height: 0; padding-top: 0; }
-.is-collapsible[data-collapsed="true"] .setting-group__header-controls { display: flex; }
+
+.is-collapsible .setting-group__header-controls {
+    display: flex;
+}
 .header-control { display: flex; align-items: center; gap: var(--qss-space-s); }
 .header-control__label-text { font-size: var(--qss-font-size-sm); color: var(--qss-text-primary); font-weight: 400; cursor: default; }
 .header-control .toggle-switch { flex-shrink: 0; }
@@ -114,6 +122,22 @@
 .setting-item + .setting-item { border-top: 1px solid #f1f1f1; }
 .setting-item__label { position: relative; flex-basis: 180px; flex-shrink: 0; font-weight: 400; font-size: var(--qss-font-size-sm); color: var(--qss-text-primary); display: flex; align-items: center; gap: var(--qss-space-s); }
 .setting-item__control { flex-grow: 1; display: flex; flex-wrap: wrap; align-items: center; gap: var(--qss-space-s); }
+
+/* --- Логика скрытого чекбокса --- */
+.setting-item[data-has-hidden-checkbox="true"] .setting-item__control {
+    flex-direction: column;
+    align-items: flex-start;
+}
+.hidden-checkbox-content {
+    width: 100%;
+    display: none;
+    margin-left: 0;
+    margin-top: var(--qss-space-m);
+}
+.hidden-checkbox-content.is-visible {
+    display: block;
+}
+
 /* --- Detail Settings Toggle --- */
 .detail-settings-toggle {
     display: block;
@@ -145,10 +169,11 @@
 }
 .setting-group__content.details-shown .detail-settings-container,
 .radio-card__content.details-shown .detail-settings-container {
-    max-height: 50rem; /* Should be larger than any possible content height */
+    max-height: 50rem;
     opacity: 1;
     padding-top: var(--qss-space-s);
 }
+
 .radio-card-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--qss-space-m); width: 100%; }
 .radio-card__input { display: none; }
 .radio-card__label { display: flex; flex-direction: column; padding: var(--qss-space-m); border: 2px solid var(--qss-border-color); border-radius: var(--qss-radius); cursor: pointer; height: 100%; transition: all var(--qss-transition); background: var(--qss-body-bg); }
@@ -191,24 +216,86 @@
 .radio-pills__label { padding: 4px 10px; border-radius: var(--qss-radius-sm); background: #e9ecef; color: var(--qss-text-secondary); font-weight: 400; font-size: var(--qss-font-size-xs); cursor: pointer; transition: all var(--qss-transition); }
 .radio-pills__label:hover { background: #dce1e5; }
 .radio-pills__input:checked + .radio-pills__label { background: var(--qss-primary); color: #fff; box-shadow: 0 2px 6px rgba(0, 123, 255, 0.3); }
-.toggle-switch { position: relative; display: inline-block; width: 40px; height: 22px; cursor: pointer; }
-.toggle-switch__input { opacity: 0; width: 0; height: 0; }
+
+/* --- Полная стилизация Toggle Switch --- */
+.toggle-switch { position: relative; display: inline-block; width: 40px; height: 22px; cursor: pointer; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
+.toggle-switch__input,
+.hidden-checkbox-enabler {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    clip: rect(0 0 0 0);
+    overflow: hidden;
+    white-space: nowrap;
+    -webkit-appearance: none;
+    appearance: none;
+}
 .toggle-switch__slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; border-radius: 22px; transition: var(--qss-transition); }
 .toggle-switch__slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; border-radius: 50%; transition: var(--qss-transition); box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
-.toggle-switch__input:checked + .toggle-switch__slider { background-color: var(--qss-primary); }
-.toggle-switch__input:checked + .toggle-switch__slider:before { transform: translateX(18px); }
+.toggle-switch.is-checked .toggle-switch__slider,
+.toggle-switch__input:checked + .toggle-switch__slider,
+.hidden-checkbox-enabler:checked + .toggle-switch__slider { background-color: var(--qss-primary); }
+.toggle-switch.is-checked .toggle-switch__slider:before,
+.toggle-switch__input:checked + .toggle-switch__slider:before,
+.hidden-checkbox-enabler:checked + .toggle-switch__slider:before { transform: translateX(18px); }
+.toggle-switch__input:focus-visible + .toggle-switch__slider,
+.hidden-checkbox-enabler:focus-visible + .toggle-switch__slider { box-shadow: 0 0 0 2px var(--qss-primary-light); }
+
+
 .color-picker { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: var(--qss-space-s); }
 .color-picker [type="color"] { top: 100%; }
-.color-picker__swatches { display: flex; flex-wrap: wrap; gap: var(--qss-space-s); }
+.color-picker__swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--qss-space-s);
+    padding: 7px 3px 3px;
+    margin: -3px;
+}
 .color-picker__radio { display: none; }
 .color-picker__swatch-label { cursor: pointer; }
 .color-picker__swatch { display: block; width: 20px; height: 20px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); transition: all var(--qss-transition); }
-.color-picker__radio:checked + .color-picker__swatch { transform: scale(1.1); outline: 2px solid var(--qss-primary); outline-offset: 1px; }
-.color-input-container { display: flex; align-items: center; }
-.color-input-container__hex { width: 90px; padding: 4px 8px; border: 1px solid var(--qss-border-color); border-right: none; border-radius: var(--qss-radius-sm) 0 0 var(--qss-radius-sm); font-family: monospace; background-color: var(--qss-panel-bg); font-size: var(--qss-font-size-sm); }
-.color-input-container__picker-btn { display: inline-flex; align-items: center; justify-content: center; padding: 4px; border: 1px solid var(--qss-border-color); background: #f8f9fa; border-radius: 0 var(--qss-radius-sm) var(--qss-radius-sm) 0; cursor: pointer; color: var(--qss-text-secondary); }
-.color-input-container__picker-btn:hover { background: #e9ecef; }
-.color-input-container__picker-btn svg { width: 14px; height: 14px; }
+.color-picker__radio:checked + .color-picker__swatch {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 2px var(--qss-primary);
+}
+.color-input-container {
+    display: flex;
+    align-items: stretch;
+    height: 30px;
+}
+.color-input-container__hex {
+    width: 90px;
+    padding: var(--qss-space-s) var(--qss-space-m);
+    border: 1px solid var(--qss-border-color);
+    border-right: none;
+    border-radius: var(--qss-radius-sm) 0 0 var(--qss-radius-sm);
+    font-family: monospace;
+    background-color: var(--qss-panel-bg);
+    font-size: var(--qss-font-size-sm);
+    height: 100%;
+}
+.color-input-container__picker-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 100%;
+    padding: 0;
+    border: 1px solid var(--qss-border-color);
+    background: #f8f9fa;
+    border-radius: 0 var(--qss-radius-sm) var(--qss-radius-sm) 0;
+    cursor: pointer;
+    color: var(--qss-text-secondary);
+    transition: background-color var(--qss-transition);
+}
+.color-input-container__picker-btn:hover { background-color: #e9ecef; }
+.color-input-container__picker-btn svg { width: 14px; height: 14px; transition: stroke var(--qss-transition); }
+.color-input-container__picker-btn.is-dark svg {
+    stroke: #ffffff;
+}
 .tabs-container { width: 100%; }
 .tabs-header { display: flex; border-bottom: 1px solid var(--qss-border-color); margin-bottom: var(--qss-space-l); }
 .tab { position: relative; display: flex; align-items: center; gap: var(--qss-space-s); padding: var(--qss-space-s) 0; margin-right: var(--qss-space-l); cursor: pointer; border-bottom: 2px solid transparent; color: var(--qss-text-secondary); font-weight: 500; font-size: var(--qss-font-size-lg); }

@@ -488,6 +488,27 @@ function InstallDB(): bool
             return false;
         }
 
+        // HIDDEN_CHECKBOX — флаг отображения в заголовке для свернутого блока
+        $showTitleProperty = [
+            'IBLOCK_ID'     => 120,
+            'NAME'          => 'Скрытое свойство с открытием checkbox',
+            'CODE'          => 'HIDDEN_CHECKBOX',
+            'PROPERTY_TYPE' => 'L',    // список
+            'LIST_TYPE'     => 'C',    // чекбоксы
+            'MULTIPLE'      => 'N',
+            'IS_REQUIRED'   => 'N',
+            'HINT'          => 'Отображать заголовок на странице',
+        ];
+        $showTitlePropertyId = $ibp->Add($showTitleProperty);
+        if (!$showTitlePropertyId) {
+            $APPLICATION->ThrowException($ibp->LAST_ERROR);
+            return false;
+        }
+
+// Значения списка: «Нет» и «Да» (по умолчанию «Да»)
+        $enum = new \CIBlockPropertyEnum();
+        $enum->Add(['PROPERTY_ID' => $showTitlePropertyId, 'VALUE' => 'Да',  'DEF' => 'N']);
+
         // Значения списка: «Нет» и «Да» (по умолчанию «Да»)
         $enum = new \CIBlockPropertyEnum();
         $enum->Add(['PROPERTY_ID' => $showTitlePropertyId, 'VALUE' => 'Да',  'DEF' => 'N']);
