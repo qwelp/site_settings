@@ -28,7 +28,7 @@ if (!class_exists('TemplateRenderer')) {
             $this->templatePath = $templatePath;
         }
 
-        public function renderGroup(array $section, bool $isSortable = false): void
+        public function renderGroup(array $section, bool $isSortable = false, string $parentCode = ''): void
         {
             $template = $this->template;
             $templatePath = $this->templatePath;
@@ -54,6 +54,9 @@ if (!class_exists('TemplateRenderer')) {
             if ($isCommonGroup) {
                 $groupAttributes .= ' data-common-group="true" data-group-code="' . htmlspecialcharsbx($section['id']) . '"';
             }
+            if ($parentCode) {
+                $groupAttributes .= ' data-parent-code="' . htmlspecialcharsbx($parentCode) . '"';
+            }
 
             $isRadioCardGroup = !empty($section['SUBSECTIONS']) && (int)reset($section['SUBSECTIONS'])['DEPTH'] === 4;
 
@@ -77,7 +80,6 @@ if (!class_exists('TemplateRenderer')) {
                 <div class="setting-group__title">
                     <?php if ($isSortable): ?>
                         <span class="drag-handle-icon"></span>
-                        <?php // FIX: Добавляем чекбокс активности для сортируемых элементов ?>
                         <div class="setting-group__activity-toggle">
                             <label class="toggle-switch">
                                 <input type="checkbox"
@@ -133,7 +135,7 @@ if (!class_exists('TemplateRenderer')) {
                         $isChildrenSortable = !empty($section['UF_ENABLE_DRAG_AND_DROP']);
                         echo $isChildrenSortable ? '<div class="js-sortable-container" data-sort-group-code="' . htmlspecialcharsbx($section['id']) . '">' : '';
                         foreach ($section['SUBSECTIONS'] as $subSection) {
-                            $this->renderGroup($subSection, $isChildrenSortable);
+                            $this->renderGroup($subSection, $isChildrenSortable, $section['id']);
                         }
                         echo $isChildrenSortable ? '</div>' : '';
                     }
@@ -341,7 +343,7 @@ $savedValues = OptionsManager::getAll($arResult['SITE_ID']);
 
                                                 if ($isChildrenSortable) echo '<div class="js-sortable-container" data-sort-group-code="' . htmlspecialcharsbx($sectionLevel2['id']) . '">';
                                                 foreach ($sectionsLevel3 as $sectionLevel3) {
-                                                    $renderer->renderGroup($sectionLevel3, $isChildrenSortable);
+                                                    $renderer->renderGroup($sectionLevel3, $isChildrenSortable, $sectionLevel2['id']);
                                                 }
                                                 if ($isChildrenSortable) echo '</div>';
                                                 ?>

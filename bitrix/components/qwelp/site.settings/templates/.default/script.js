@@ -38,18 +38,19 @@ BX.ready(function() {
             const savedValues = this.config.savedValues || {};
 
             this.traverseSections({ SUBSECTIONS: allSections }, (setting) => {
-                if (state.hasOwnProperty(setting.code)) return;
+                const code = setting.code;
+                if (!code || state.hasOwnProperty(code)) return;
 
-                const savedValue = savedValues[setting.code];
+                const savedValue = savedValues[code];
                 let finalValue = (savedValue !== undefined && savedValue !== null && savedValue !== '') ? savedValue : setting.value;
 
                 if (setting.hiddenCheckbox) {
                     if (finalValue === 'false') finalValue = false;
-                    state[setting.code] = (finalValue === null || finalValue === undefined) ? false : finalValue;
+                    state[code] = (finalValue === null || finalValue === undefined) ? false : finalValue;
                 } else if (setting.type === 'checkbox') {
-                    state[setting.code] = (finalValue === true || finalValue === 'true' || finalValue === 'Y');
+                    state[code] = (finalValue === true || finalValue === 'true' || finalValue === 'Y');
                 } else {
-                    state[setting.code] = finalValue ?? '';
+                    state[code] = finalValue ?? '';
                 }
             });
 
@@ -65,7 +66,6 @@ BX.ready(function() {
                 }
             });
 
-            // Инициализация активности для сортируемых блоков
             this.elements.panel.querySelectorAll('.setting-group__activity-toggle .toggle-switch__input').forEach(toggle => {
                 const code = toggle.dataset.code;
                 if(savedValues[code] !== undefined) {
@@ -149,24 +149,15 @@ BX.ready(function() {
                 const newValue = target.checked ? target.dataset.defaultValue : false;
                 this.state[code] = newValue;
                 this.updateUIForEnabler(target);
-            } else if (code.startsWith('activity_')) {
-                this.state[code] = target.checked;
-                const toggleSwitch = target.closest('.toggle-switch');
-                if(toggleSwitch) toggleSwitch.classList.toggle('is-checked', target.checked);
             } else {
-                const hiddenParent = target.closest('.hidden-checkbox-content');
-                if (hiddenParent) {
-                    const enabler = this.elements.panel.querySelector(`[data-controls-id="${hiddenParent.id}"]`);
-                    if (enabler && !enabler.checked) return;
-                }
-
-                const settingItem = target.closest('[data-setting-type], .header-control, .radio-card');
+                const settingItem = target.closest('[data-setting-type], .header-control, .radio-card, .setting-group__activity-toggle');
                 if (!settingItem) return;
 
                 let type;
                 if(settingItem.dataset.settingType) type = settingItem.dataset.settingType;
                 else if (settingItem.matches('.header-control')) type = settingItem.className.match(/header-control--type-(\w+)/)[1];
                 else if (settingItem.matches('.radio-card')) type = 'radio';
+                else if (settingItem.matches('.setting-group__activity-toggle')) type = 'checkbox';
                 if(!type) return;
 
                 if (type === 'checkbox') {
@@ -208,9 +199,7 @@ BX.ready(function() {
             this.elements.panel.querySelectorAll('.hidden-checkbox-enabler').forEach(this.updateUIForEnabler.bind(this));
 
             Object.entries(this.state).forEach(([code, value]) => {
-                if (code.startsWith('blocks_sort_')) return;
-
-                this.elements.panel.querySelectorAll(`[data-code="${code}"]:not(.hidden-checkbox-enabler):not([data-owner-code])`).forEach(control => {
+                this.elements.panel.querySelectorAll(`[data-code="${code}"]:not([data-owner-code])`).forEach(control => {
                     if (control.closest('.hidden-checkbox-content')) return;
 
                     if (control.type === 'checkbox') {
@@ -264,9 +253,7 @@ BX.ready(function() {
         }
 
         initSortable() {
-            if (typeof Sortable === 'undefined') {
-                return;
-            }
+            if (typeof Sortable === 'undefined') { return; }
 
             const containers = this.elements.panel.querySelectorAll('.js-sortable-container');
             containers.forEach(container => {
@@ -296,7 +283,7 @@ BX.ready(function() {
         close() { this.elements.overlay?.classList.remove('active'); document.body.style.overflow = ''; }
         apply() { this.elements.applyBtn.disabled = true; this.elements.resetBtn.disabled = true; BX.ajax.runComponentAction(this.config.componentName, 'saveSettings', { mode: 'class', signedParameters: this.config.signedParams, data: { settings: this.state, siteId: this.config.siteId } }).then(response => { if (response.data.success) { alert(this.config.messages.SETTINGS_SAVED); this.originalState = JSON.parse(JSON.stringify(this.state)); window.location.reload(); } else { alert(this.config.messages.SAVE_ERROR + (response.data.message || '')); this.checkStateChanges(); } }).catch(error => { alert(this.config.messages.SAVE_ERROR_SIMPLE); console.error('Save settings error:', error); this.checkStateChanges(); }); }
         reset() { if (confirm(this.config.messages.RESET_CONFIRM)) { this.state = JSON.parse(JSON.stringify(this.originalState)); this.updateUIFromState(); this.checkStateChanges(); } }
-        traverseSections(node, callback) { if (node.settings && Array.isArray(node.settings)) { node.settings.forEach(callback); } if (node.HEADER_SETTINGS && Array.isArray(node.HEADER_SETTINGS)) { node.HEADER_SETTINGS.forEach(callback); } if (node.SUBSECTIONS && typeof node.SUBSECTIONS === 'object') { Object.values(node.SUBSECTIONS).forEach(subSection => { this.traverseSections(subSection, callback); }); } }
+        traverseSections(node, callback) { if (node.settings && Array.isArray(node.settings)) { node.settings.forEach((setting) => callback(setting, node)); } if (node.HEADER_SETTINGS && Array.isArray(node.HEADER_SETTINGS)) { node.HEADER_SETTINGS.forEach((setting) => callback(setting, node)); } if (node.SUBSECTIONS && typeof node.SUBSECTIONS === 'object') { Object.values(node.SUBSECTIONS).forEach(subSection => { this.traverseSections(subSection, callback); }); } }
         toggleCollapsibleBlock(block) { const isCollapsed = block.dataset.collapsed === 'true'; block.dataset.collapsed = isCollapsed ? 'false' : 'true'; }
         toggleDetailSettings(button) { const context = button.closest('.setting-group__content, .radio-card__content'); if (!context) return; context.classList.toggle('details-shown'); if (!button.dataset.textShow) { const isShown = context.classList.contains('details-shown'); button.textContent = isShown ? this.config.messages.HIDE_DETAILS_TEXT : this.config.messages.SHOW_DETAILS_TEXT; } }
         toggleHelp(icon) { if (icon.classList.contains('active')) { this.hideHelp(); } else { this.showHelp(icon); } }
