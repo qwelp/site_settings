@@ -103,7 +103,6 @@ if ($isHeader) {
                 <div class="hidden-checkbox-content" id="<?= $contentId ?>">
                     <?php
                     $innerSetting = $setting;
-                    unset($innerSetting['value']);
                     renderSettingControl($type, $innerSetting, $commonRadioName);
                     ?>
                 </div>

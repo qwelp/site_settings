@@ -146,8 +146,15 @@ BX.ready(function() {
             if (!code) return;
 
             if (target.classList.contains('hidden-checkbox-enabler')) {
-                const newValue = target.checked ? target.dataset.defaultValue : false;
-                this.state[code] = newValue;
+                if (target.checked) { // Включаем
+                    // Восстанавливаем из data-атрибута или берем значение по умолчанию
+                    const restoredValue = target.dataset.lastValue ?? target.dataset.defaultValue;
+                    this.state[code] = restoredValue;
+                } else { // Выключаем
+                    // Сохраняем текущее значение в data-атрибут перед тем, как сбросить его в false
+                    target.dataset.lastValue = this.state[code];
+                    this.state[code] = false;
+                }
                 this.updateUIForEnabler(target);
             } else {
                 const settingItem = target.closest('[data-setting-type], .header-control, .radio-card, .setting-group__activity-toggle');
@@ -245,8 +252,17 @@ BX.ready(function() {
                 if (isEnabled) {
                     const innerValue = value;
                     const innerColorPicker = contentBlock.querySelector('.color-picker');
+                    const innerRadios = contentBlock.querySelectorAll('input[type="radio"]');
+                    const innerSelect = contentBlock.querySelector('select');
+
                     if (innerColorPicker) {
                         this.updateColorPickerUI(innerColorPicker, innerValue);
+                    } else if (innerRadios.length > 0) {
+                        innerRadios.forEach(radio => {
+                            radio.checked = (String(radio.value) === String(innerValue));
+                        });
+                    } else if (innerSelect) {
+                        innerSelect.value = innerValue;
                     }
                 }
             }

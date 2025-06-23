@@ -329,17 +329,36 @@
 }
 .qwelp-help-tooltip.active { display: block; opacity: 1; }
 .qwelp-help-tooltip__image { max-width: 100%; height: auto; border-radius: 4px; margin-top: var(--qss-space-s); }
-.radio-image-group { display: flex; flex-wrap: wrap; gap: var(--qss-space-m); width: 100%; }
+.radio-image-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--qss-space-m);
+    width: 100%;
+}
 .radio-image__input { position: absolute; opacity: 0; width: 0; height: 0; margin: 0; }
-.radio-image-item { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.radio-image-item { display: flex; flex-direction: column; text-align: center; }
 .radio-image__label-text { display: block; margin-bottom: var(--qss-space-s); font-size: var(--qss-font-size-xs); font-weight: 500; color: var(--qss-text-primary); }
-.radio-image { display: flex; flex-direction: column; align-items: center; cursor: pointer; border: 2px solid var(--qss-border-color); border-radius: var(--qss-radius); padding: var(--qss-space-m); transition: all var(--qss-transition); background-color: var(--qss-panel-bg); }
+
+/* --- ИЗМЕНЕНО --- */
+.radio-image {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    border: 2px solid var(--qss-border-color);
+    border-radius: var(--qss-radius);
+    padding: var(--qss-space-m);
+    transition: all var(--qss-transition);
+    background-color: var(--qss-panel-bg);
+    height: 100%; /* Заставляем метку растягиваться на всю высоту ячейки грида */
+}
 .radio-image:hover { border-color: #c0d5f8; }
 .radio-image__input:focus-visible + .radio-image { outline: 2px solid var(--qss-primary); outline-offset: 1px; }
 .radio-image__input:checked + .radio-image { border-color: var(--qss-primary); box-shadow: 0 2px 8px rgba(0, 123, 255, 0.15); }
 .radio-image__picture {
     width: 100%;
-    height: auto;
+    height: 70px;
+    object-fit: contain;
     border-radius: var(--qss-radius-sm);
     display: block;
 }
