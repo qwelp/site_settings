@@ -1,1174 +1,335 @@
 <?php
+
 /**
- * Файл для создания инфоблока при установке модуля
+ * Файл для создания и удаления структуры данных модуля при установке/деинсталляции.
  *
  * @package qwelp.site_settings
+ * @version 1.1.1
  */
+
+declare(strict_types=1);
 
 use Bitrix\Main\Loader;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Iblock\TypeTable;
+use Bitrix\Main\Application;
 
 Loc::loadMessages(__FILE__);
 
+if (!Loader::includeModule('iblock')) {
+    throw new \RuntimeException(Loc::getMessage('QWELP_SITE_SETTINGS_IBLOCK_MODULE_NOT_INSTALLED'));
+}
+
 /**
- * Транслитерирует строку с заданными параметрами
+ * Транслитерирует строку с заданными параметрами.
  *
- * @param string $string Строка для транслитерации
- * @return string Транслитерированная строка
+ * @param string $string Строка для транслитерации.
+ * @return string Транслитерированная строка.
  */
-function transliterateString(string $string): string
+function qwelpSettingsTransliterateString(string $string): string
 {
-    // Если строка пустая, возвращаем пустую строку
     if (empty($string)) {
         return '';
     }
 
-    // Транслитерируем строку с помощью CUtil::translit
-    $code = \CUtil::translit(
+    return (string)\CUtil::translit(
         $string,
-        "ru",
+        'ru',
         [
-            "max_len"                 => 100,
-            "change_case"             => "L",
-            "replace_space"           => "-",
-            "replace_other"           => "-",
-            "remove_duplicated_chars" => true,
+            'max_len' => 100,
+            'change_case' => 'L',
+            'replace_space' => '-',
+            'replace_other' => '-',
+            'remove_duplicated_chars' => true,
         ]
     );
-
-    return $code;
 }
 
 /**
- * Создает тип инфоблока, инфоблок и свойства для настроек сайта
+ * Рекурсивно создает разделы, их элементы и подразделы.
+ * Гарантирует сохранение иерархии из demodata.
+ *
+ * @param array<int, array<string, mixed>> $items Массив разделов для создания на текущем уровне.
+ * @param int $iblockId ID инфоблока, в котором создаются сущности.
+ * @param int $parentSectionId ID родительского раздела (0 для корневого уровня).
+ * @return void
+ * @throws \Exception Если не удалось создать раздел или элемент.
+ */
+function createSectionsAndElements(array $items, int $iblockId, int $parentSectionId = 0): void
+{
+    $bs = new \CIBlockSection();
+    $el = new \CIBlockElement();
+
+    foreach ($items as $sectionData) {
+        $sectionCode = trim((string)($sectionData['CODE'] ?? ''));
+        if ($sectionCode === '') {
+            $sectionCode = qwelpSettingsTransliterateString($sectionData['NAME']);
+        }
+
+        $sectionFields = [
+            'ACTIVE' => 'Y',
+            'IBLOCK_ID' => $iblockId,
+            'NAME' => $sectionData['NAME'],
+            'CODE' => $sectionCode,
+            'SORT' => $sectionData['SORT'] ?? 500,
+            'IBLOCK_SECTION_ID' => $parentSectionId,
+        ];
+
+        // Добавляем пользовательские поля из UF_FIELDS, если они есть
+        if (!empty($sectionData['UF_FIELDS']) && is_array($sectionData['UF_FIELDS'])) {
+            $sectionFields = array_merge($sectionFields, $sectionData['UF_FIELDS']);
+        }
+
+        $newSectionId = (int)$bs->Add($sectionFields);
+        if ($newSectionId <= 0) {
+            throw new \Exception(Loc::getMessage('QWELP_SITE_SETTINGS_SECTION_ADD_ERROR') . ' ' . $bs->LAST_ERROR);
+        }
+
+        // Создаем элементы в только что созданном разделе
+        if (!empty($sectionData['ELEMENTS']) && is_array($sectionData['ELEMENTS'])) {
+            foreach ($sectionData['ELEMENTS'] as $elementData) {
+                $elementFields = [
+                    'IBLOCK_ID' => $iblockId,
+                    'NAME' => $elementData['NAME'],
+                    'CODE' => $elementData['CODE'],
+                    'ACTIVE' => 'Y',
+                    'SORT' => $elementData['SORT'] ?? 500,
+                    'IBLOCK_SECTION_ID' => $newSectionId,
+                ];
+
+                $elementId = (int)$el->Add($elementFields, false, true, true);
+                if ($elementId <= 0) {
+                    throw new \Exception(Loc::getMessage('QWELP_SITE_SETTINGS_ELEMENT_ADD_ERROR') . ' ' . $el->LAST_ERROR);
+                }
+
+                if (!empty($elementData['PROPERTIES'])) {
+                    \CIBlockElement::SetPropertyValuesEx($elementId, $iblockId, $elementData['PROPERTIES']);
+                }
+            }
+        }
+
+        // Рекурсивный вызов для дочерних разделов
+        if (!empty($sectionData['SUBSECTIONS']) && is_array($sectionData['SUBSECTIONS'])) {
+            createSectionsAndElements($sectionData['SUBSECTIONS'], $iblockId, $newSectionId);
+        }
+    }
+}
+
+/**
+ * Создает тип инфоблока, инфоблок, свойства и наполняет их данными.
  *
  * @return bool
  */
 function InstallDB(): bool
-{ 
-    global $DB, $APPLICATION;
+{
+    global $APPLICATION;
 
-    // Подключаем модуль инфоблоков
-    if (!Loader::includeModule('iblock')) {
-        $APPLICATION->ThrowException(Loc::getMessage('QWELP_SITE_SETTINGS_IBLOCK_MODULE_NOT_INSTALLED'));
-        return false;
-    }
-
-    // Создаем тип инфоблока, если не существует
     $iblockType = 'site_settings';
-    $typeResult = TypeTable::getList([
-        'filter' => ['=ID' => $iblockType],
-        'select' => ['ID'],
-        'limit'  => 1,
-    ]);
+    $typeResult = TypeTable::getList(['filter' => ['=ID' => $iblockType]]);
 
     if (!$typeResult->fetch()) {
-        $arFields = [
-            'ID'              => $iblockType,
-            'SECTIONS'        => 'Y',
-            'EDIT_FILE_BEFORE'=> '',
-            'EDIT_FILE_AFTER' => '',
-            'IN_RSS'          => 'N',
-            'SORT'            => 500,
-            'LANG'            => [
-                'ru' => [
-                    'NAME'         => 'Настройки сайта',
-                    'SECTION_NAME' => 'Разделы',
-                    'ELEMENT_NAME' => 'Настройки',
-                ],
-                'en' => [
-                    'NAME'         => 'Site Settings',
-                    'SECTION_NAME' => 'Sections',
-                    'ELEMENT_NAME' => 'Settings',
-                ],
+        $typeFields = [
+            'ID' => $iblockType,
+            'SECTIONS' => 'Y',
+            'IN_RSS' => 'N',
+            'SORT' => 500,
+            'LANG' => [
+                'ru' => ['NAME' => 'Настройки сайта', 'SECTION_NAME' => 'Разделы', 'ELEMENT_NAME' => 'Настройки'],
+                'en' => ['NAME' => 'Site Settings', 'SECTION_NAME' => 'Sections', 'ELEMENT_NAME' => 'Settings'],
             ],
         ];
-
         $obIblockType = new \CIBlockType();
-        $result       = $obIblockType->Add($arFields);
-        if (!$result) {
+        if (!$obIblockType->Add($typeFields)) {
             $APPLICATION->ThrowException($obIblockType->LAST_ERROR);
             return false;
         }
     }
 
-    // Создаем инфоблок
-    $iblockCode  = 'site_settings';
+    $iblockCode = 'site_settings';
     $iblockXmlId = 'site_settings';
 
-    // Проверяем, существует ли уже инфоблок с таким кодом
-    $dbIblock = \CIBlock::GetList(
-        [],
-        [
-            'CODE'             => $iblockCode,
-            'TYPE'             => $iblockType,
-            'CHECK_PERMISSIONS'=> 'N',
-        ]
-    );
+    $dbIblock = \CIBlock::GetList([], ['CODE' => $iblockCode, 'TYPE' => $iblockType, 'CHECK_PERMISSIONS' => 'N']);
 
     if (!$dbIblock->Fetch()) {
-        // Получаем все сайты
-        $sites  = [];
-        $sort = 'sort';
-        $order = 'desc';
-        $rsSites= \CSite::GetList($sort, $order, []);
+        $sites = [];
+        $rsSites = \CSite::GetList('sort', 'asc');
         while ($arSite = $rsSites->Fetch()) {
             $sites[] = $arSite['LID'];
         }
 
-        // Создаем инфоблок
         $iblockFieldsMain = [
-            'ACTIVE'             => 'Y',
-            'NAME'               => 'Настройки сайта',
-            'CODE'               => $iblockCode,
-            'XML_ID'             => $iblockXmlId,
-            'IBLOCK_TYPE_ID'     => $iblockType,
-            'SITE_ID'            => $sites,
-            'SORT'               => 100,
-            'GROUP_ID'           => ['2' => 'R'],
-            'VERSION'            => 2,
-            'INDEX_ELEMENT'      => 'N',
-            'INDEX_SECTION'      => 'N',
-            'WORKFLOW'           => 'N',
-            'BIZPROC'            => 'N',
-            'LIST_PAGE_URL'      => '',
-            'SECTION_PAGE_URL'   => '',
-            'DETAIL_PAGE_URL'    => '',
-            'CANONICAL_PAGE_URL' => '',
-            'EDIT_FILE_BEFORE'   => '',
-            'EDIT_FILE_AFTER'    => '',
+            'ACTIVE' => 'Y',
+            'NAME' => 'Настройки сайта',
+            'CODE' => $iblockCode,
+            'XML_ID' => $iblockXmlId,
+            'IBLOCK_TYPE_ID' => $iblockType,
+            'SITE_ID' => $sites,
+            'SORT' => 100,
+            'GROUP_ID' => ['2' => 'R'],
+            'VERSION' => 2,
+            'INDEX_ELEMENT' => 'N',
+            'INDEX_SECTION' => 'N',
         ];
 
-        $iblock   = new \CIBlock();
-        $iblockId = $iblock->Add($iblockFieldsMain);
-        if (!$iblockId) {
+        $iblock = new \CIBlock();
+        $iblockId = (int)$iblock->Add($iblockFieldsMain);
+        if ($iblockId <= 0) {
             $APPLICATION->ThrowException($iblock->LAST_ERROR);
             return false;
         }
 
-        // Устанавливаем поле CODE как обязательное для разделов и настраиваем символьный код
-        $iblockFields = \CIBlock::GetFields($iblockId);
-        $iblockFields["SECTION_CODE"]["IS_REQUIRED"] = "Y";
-        // Настройки символьного кода
-        $iblockFields["SECTION_CODE"]["DEFAULT_VALUE"]["UNIQUE"] = "Y";          // Проверять на уникальность
-        $iblockFields["SECTION_CODE"]["DEFAULT_VALUE"]["TRANSLITERATION"] = "Y"; // Транслитерировать из названия
-        $iblockFields["SECTION_CODE"]["DEFAULT_VALUE"]["TRANS_LEN"] = 100;       // Максимальная длина результата
-        $iblockFields["SECTION_CODE"]["DEFAULT_VALUE"]["TRANS_CASE"] = "L";      // Приведение к нижнему регистру
-        $iblockFields["SECTION_CODE"]["DEFAULT_VALUE"]["TRANS_SPACE"] = "-";     // Замена для символа пробела
-        $iblockFields["SECTION_CODE"]["DEFAULT_VALUE"]["TRANS_OTHER"] = "-";     // Замена для прочих символов
-        $iblockFields["SECTION_CODE"]["DEFAULT_VALUE"]["TRANS_EAT"] = "Y";       // Удалять лишние символы замены
-        $iblockFields["SECTION_CODE"]["DEFAULT_VALUE"]["USE_GOOGLE"] = "Y";      // Использовать внешний сервис для перевода
+        $iblockFieldsSettings = \CIBlock::GetFields($iblockId);
+        $translitSettings = [
+            "UNIQUE" => "Y",
+            "TRANSLITERATION" => "Y",
+            "TRANS_LEN" => 100,
+            "TRANS_CASE" => "L",
+            "TRANS_SPACE" => "-",
+            "TRANS_OTHER" => "-",
+            "TRANS_EAT" => "Y",
+            "USE_GOOGLE" => "N",
+        ];
+        $iblockFieldsSettings["SECTION_CODE"]["IS_REQUIRED"] = "Y";
+        $iblockFieldsSettings["SECTION_CODE"]["DEFAULT_VALUE"] = $translitSettings;
+        $iblockFieldsSettings["CODE"]["IS_REQUIRED"] = "Y";
+        $iblockFieldsSettings["CODE"]["DEFAULT_VALUE"] = $translitSettings;
+        \CIBlock::SetFields($iblockId, $iblockFieldsSettings);
 
-        // Устанавливаем поле CODE как обязательное для элементов и настраиваем символьный код
-        $iblockFields["CODE"]["IS_REQUIRED"] = "Y";
-        // Настройки символьного кода
-        $iblockFields["CODE"]["DEFAULT_VALUE"]["UNIQUE"] = "Y";          // Проверять на уникальность
-        $iblockFields["CODE"]["DEFAULT_VALUE"]["TRANSLITERATION"] = "Y"; // Транслитерировать из названия
-        $iblockFields["CODE"]["DEFAULT_VALUE"]["TRANS_LEN"] = 100;       // Максимальная длина результата
-        $iblockFields["CODE"]["DEFAULT_VALUE"]["TRANS_CASE"] = "L";      // Приведение к нижнему регистру
-        $iblockFields["CODE"]["DEFAULT_VALUE"]["TRANS_SPACE"] = "-";     // Замена для символа пробела
-        $iblockFields["CODE"]["DEFAULT_VALUE"]["TRANS_OTHER"] = "-";     // Замена для прочих символов
-        $iblockFields["CODE"]["DEFAULT_VALUE"]["TRANS_EAT"] = "Y";       // Удалять лишние символы замены
-        $iblockFields["CODE"]["DEFAULT_VALUE"]["USE_GOOGLE"] = "Y";      // Использовать внешний сервис для перевода
-
-        \CIBlock::SetFields($iblockId, $iblockFields);
-
+        // === Создание пользовательских полей для разделов ===
         $oUserTypeEntity = new \CUserTypeEntity();
-        $arUserFieldData = [
-            'ENTITY_ID'         => 'IBLOCK_' . $iblockId . '_SECTION',
-            'FIELD_NAME'        => 'UF_ENABLE_DRAG_AND_DROP', // Новое, более логичное системное имя
-            'USER_TYPE_ID'      => 'boolean',                 // Тип поля - логический (чекбокс Да/Нет)
-            'XML_ID'            => 'UF_ENABLE_DRAG_AND_DROP', // Новое, более логичное внешнее имя
-            'SORT'              => 500,
-            'MULTIPLE'          => 'N',                       // Логическое поле не может быть множественным
-            'MANDATORY'         => 'N',                       // Обязательность поля (N - нет)
-            'SHOW_FILTER'       => 'N',                       // Показывать в фильтре списка (можно изменить на 'Y')
-            'SHOW_IN_LIST'      => 'Y',                       // Показывать в списке элементов
-            'EDIT_IN_LIST'      => 'Y',                       // Разрешать редактирование в списке
-            'IS_SEARCHABLE'     => 'N',                       // Участвует ли в поиске
-            'SETTINGS'          => [
-                'DEFAULT_VALUE' => 0,        // Значение по умолчанию: 0 (чекбокс не отмечен) или 1 (отмечен)
-                // 'LABEL_CHECKBOX' => 'Текст непосредственно у чекбокса' // Можно использовать, если стандартной метки недостаточно
+        $ufFields = [
+            [
+                'FIELD_NAME' => 'UF_ENABLE_DRAG_AND_DROP',
+                'XML_ID' => 'UF_ENABLE_DRAG_AND_DROP',
+                'SORT' => 500,
+                'HELP_MESSAGE' => ['ru' => 'Активирует функционал drag and drop для раздела.', 'en' => 'Activates drag and drop functionality.'],
+                'EDIT_FORM_LABEL' => ['ru' => 'Включить drag and drop', 'en' => 'Enable drag and drop'],
             ],
-            'EDIT_FORM_LABEL'   => [
-                'ru' => 'Включить drag and drop',
-                'en' => 'Enable drag and drop',
+            [
+                'FIELD_NAME' => 'UF_DETAIL_PROPERTY',
+                'XML_ID' => 'UF_DETAIL_PROPERTY',
+                'SORT' => 510,
+                'HELP_MESSAGE' => ['ru' => 'Дополнительная информация для раздела.', 'en' => 'Additional information for the section.'],
+                'EDIT_FORM_LABEL' => ['ru' => 'Детальное свойство', 'en' => 'Detail Property'],
             ],
-            'LIST_COLUMN_LABEL' => [
-                'ru' => 'Drag and Drop', // Название для колонки в списке
-                'en' => 'Drag and Drop',
+            [
+                'FIELD_NAME' => 'UF_COMMON_PROPERTY',
+                'XML_ID' => 'UF_COMMON_PROPERTY',
+                'SORT' => 520,
+                'HELP_MESSAGE' => ['ru' => 'Единое свойство для всех разделов.', 'en' => 'A common property for all sections.'],
+                'EDIT_FORM_LABEL' => ['ru' => 'Единое свойство', 'en' => 'Common Property'],
             ],
-            'LIST_FILTER_LABEL' => [
-                'ru' => 'Drag and Drop', // Название для фильтра
-                'en' => 'Drag and Drop',
+            [
+                'FIELD_NAME' => 'UF_COLLAPSED_BLOCK',
+                'XML_ID' => 'UF_COLLAPSED_BLOCK',
+                'SORT' => 530,
+                'HELP_MESSAGE' => ['ru' => 'Позволяет скрывать содержимое раздела по умолчанию.', 'en' => 'Allows to hide the section content by default.'],
+                'EDIT_FORM_LABEL' => ['ru' => 'Свернутый блок', 'en' => 'Collapsed Block'],
             ],
-            'HELP_MESSAGE'      => [
-                'ru' => 'Активирует или деактивирует функционал drag and drop для раздела.',
-                'en' => 'Activates or deactivates the drag and drop functionality for the section.',
-            ],
-        ];
-
-        $userFieldId = $oUserTypeEntity->Add($arUserFieldData);
-        if (!$userFieldId) {
-            if ($ex = $APPLICATION->GetException()) {
-                $APPLICATION->ThrowException(Loc::getMessage('QWELP_SITE_SETTINGS_UF_ADD_ERROR') . $ex->GetString());
-            } else {
-                $APPLICATION->ThrowException(Loc::getMessage('QWELP_SITE_SETTINGS_UF_ADD_ERROR_UNKNOWN'));
-            }
-            return false;
-        }
-
-        // Добавляем пользовательское поле для разделов - детальное свойство
-        $detailPropertyUserField = [
-            'ENTITY_ID'         => 'IBLOCK_' . $iblockId . '_SECTION',
-            'FIELD_NAME'        => 'UF_DETAIL_PROPERTY',
-            'USER_TYPE_ID'      => 'boolean',
-            'XML_ID'            => 'UF_DETAIL_PROPERTY',
-            'SORT'              => 510,
-            'MULTIPLE'          => 'N',                       // Логическое поле не может быть множественным
-            'MANDATORY'         => 'N',                       // Обязательность поля (N - нет)
-            'SHOW_FILTER'       => 'N',                       // Показывать в фильтре списка (можно изменить на 'Y')
-            'SHOW_IN_LIST'      => 'Y',                       // Показывать в списке элементов
-            'EDIT_IN_LIST'      => 'Y',                       // Разрешать редактирование в списке
-            'IS_SEARCHABLE'     => 'N',
-            'SETTINGS'          => [
-                'DEFAULT_VALUE' => '',
-                'SIZE'          => 20,
-                'ROWS'          => 1,
-            ],
-            'EDIT_FORM_LABEL'   => [
-                'ru' => 'Детальное свойство',
-                'en' => 'Detail Property',
-            ],
-            'LIST_COLUMN_LABEL' => [
-                'ru' => 'Детальное свойство',
-                'en' => 'Detail Property',
-            ],
-            'LIST_FILTER_LABEL' => [
-                'ru' => 'Детальное свойство',
-                'en' => 'Detail Property',
-            ],
-            'HELP_MESSAGE'      => [
-                'ru' => 'Дополнительная информация для раздела.',
-                'en' => 'Additional information for the section.',
-            ],
-        ];
-
-        $detailPropertyUserFieldId = $oUserTypeEntity->Add($detailPropertyUserField);
-        if (!$detailPropertyUserFieldId) {
-            if ($ex = $APPLICATION->GetException()) {
-                $APPLICATION->ThrowException(Loc::getMessage('QWELP_SITE_SETTINGS_UF_ADD_ERROR') . $ex->GetString());
-            } else {
-                $APPLICATION->ThrowException(Loc::getMessage('QWELP_SITE_SETTINGS_UF_ADD_ERROR_UNKNOWN'));
-            }
-            return false;
-        }
-
-        // Добавляем значения списка
-        $obEnum = new \CUserFieldEnum();
-        $enumValues = [
-            'n0' => [
-                'XML_ID' => 'Y',
-                'VALUE'  => 'Да',
-                'DEF'    => 'N',
-                'SORT'   => '100',
+            [
+                'FIELD_NAME' => 'UF_HIDDEN_CHECKBOX',
+                'XML_ID' => 'UF_HIDDEN_CHECKBOX',
+                'SORT' => 535,
+                'HELP_MESSAGE' => ['ru' => 'Скрытое свойство с чекбоксом.', 'en' => 'Hidden property with a checkbox.'],
+                'EDIT_FORM_LABEL' => ['ru' => 'Скрытый чекбокс', 'en' => 'Hidden Checkbox'],
             ]
         ];
-        $obEnum->SetEnumValues($userFieldId, $enumValues);
-
-        // Добавляем пользовательское поле для разделов - единое свойство
-        $commonPropertyUserField = [
-            'ENTITY_ID'         => 'IBLOCK_' . $iblockId . '_SECTION',
-            'FIELD_NAME'        => 'UF_COMMON_PROPERTY', // Новое системное имя
-            'USER_TYPE_ID'      => 'boolean',
-            'XML_ID'            => 'UF_COMMON_PROPERTY',
-            'SORT'              => 520,
-            'MULTIPLE'          => 'N', // Логическое поле не может быть множественным
-            'MANDATORY'         => 'N', // Обязательность поля (N - нет)
-            'SHOW_FILTER'       => 'N',
-            'SHOW_IN_LIST'      => 'Y', // Показывать в списке разделов
-            'EDIT_IN_LIST'      => 'Y', // Разрешать редактирование в списке
-            'IS_SEARCHABLE'     => 'N',
-            'SETTINGS'          => [
-                'DEFAULT_VALUE' => '',
-                'SIZE'          => 20,
-                'ROWS'          => 1,
-            ],
-            'EDIT_FORM_LABEL'   => [
-                'ru' => 'Единое свойство',
-                'en' => 'Common Property',
-            ],
-            'LIST_COLUMN_LABEL' => [
-                'ru' => 'Единое свойство',
-                'en' => 'Common Property',
-            ],
-            'LIST_FILTER_LABEL' => [
-                'ru' => 'Единое свойство',
-                'en' => 'Common Property',
-            ],
-            'HELP_MESSAGE'      => [
-                'ru' => 'Единое свойство для всех разделов.',
-                'en' => 'A common property for all sections.',
-            ],
-        ];
-        $commonPropertyUserFieldId = $oUserTypeEntity->Add($commonPropertyUserField);
-        if (!$commonPropertyUserFieldId) {
-            if ($ex = $APPLICATION->GetException()) {
-                $APPLICATION->ThrowException(Loc::getMessage('QWELP_SITE_SETTINGS_UF_ADD_ERROR') . $ex->GetString());
-            } else {
-                $APPLICATION->ThrowException(Loc::getMessage('QWELP_SITE_SETTINGS_UF_ADD_ERROR_UNKNOWN'));
+        foreach ($ufFields as $uf) {
+            $ufData = [
+                'ENTITY_ID' => 'IBLOCK_' . $iblockId . '_SECTION',
+                'USER_TYPE_ID' => 'boolean',
+                'MULTIPLE' => 'N',
+                'MANDATORY' => 'N',
+                'SHOW_FILTER' => 'N',
+                'SHOW_IN_LIST' => 'Y',
+                'EDIT_IN_LIST' => 'Y',
+                'IS_SEARCHABLE' => 'N',
+                'SETTINGS' => ['DEFAULT_VALUE' => 0],
+                'LIST_COLUMN_LABEL' => $uf['EDIT_FORM_LABEL'],
+                'LIST_FILTER_LABEL' => $uf['EDIT_FORM_LABEL'],
+            ];
+            if (!$oUserTypeEntity->Add(array_merge($uf, $ufData))) {
+                if ($ex = $APPLICATION->GetException()) {
+                    $APPLICATION->ThrowException(Loc::getMessage('QWELP_SITE_SETTINGS_UF_ADD_ERROR') . ' ' . $ex->GetString());
+                }
+                return false;
             }
-            return false;
         }
 
-        // Добавляем пользовательское поле для разделов - свернутый блок
-        $collapsedBlockUserField = [
-            'ENTITY_ID'         => 'IBLOCK_' . $iblockId . '_SECTION',
-            'FIELD_NAME'        => 'UF_COLLAPSED_BLOCK',
-            'USER_TYPE_ID'      => 'boolean',
-            'XML_ID'            => 'UF_COLLAPSED_BLOCK',
-            'SORT'              => 530,
-            'MULTIPLE'          => 'N',
-            'MANDATORY'         => 'N',
-            'SHOW_FILTER'       => 'N',
-            'SHOW_IN_LIST'      => 'Y',
-            'EDIT_IN_LIST'      => 'Y',
-            'IS_SEARCHABLE'     => 'N',
-            'SETTINGS'          => ['DEFAULT_VALUE' => '', 'SIZE' => 20, 'ROWS' => 1],
-            'EDIT_FORM_LABEL'   => ['ru' => 'Свернутый блок', 'en' => 'Collapsed Block'],
-            'LIST_COLUMN_LABEL' => ['ru' => 'Свернутый блок', 'en' => 'Collapsed Block'],
-            'LIST_FILTER_LABEL' => ['ru' => 'Свернутый блок', 'en' => 'Collapsed Block'],
-            'HELP_MESSAGE'      => ['ru' => 'Позволяет скрывать содержимое раздела по умолчанию.', 'en' => 'Allows to hide the section content by default.'],
+        // Строковые пользовательские поля
+        $stringUfFields = [
+            [
+                'FIELD_NAME' => 'UF_HIDDEN_ELEMENTS_TITLE',
+                'XML_ID' => 'UF_HIDDEN_ELEMENTS_TITLE',
+                'SORT' => 540,
+                'HELP_MESSAGE' => ['ru' => 'Заголовок для группы скрытых элементов.', 'en' => 'Title for hidden elements group.'],
+                'EDIT_FORM_LABEL' => ['ru' => 'Название для спрятанных элементов', 'en' => 'Title for hidden elements'],
+            ],
+            [
+                'FIELD_NAME' => 'UF_SECTION_TOOLTIP',
+                'XML_ID' => 'UF_SECTION_TOOLTIP',
+                'SORT' => 550,
+                'HELP_MESSAGE' => ['ru' => 'Текст подсказки, отображаемый рядом с заголовком раздела.', 'en' => 'Tooltip text displayed next to the section title.'],
+                'EDIT_FORM_LABEL' => ['ru' => 'Подсказка раздела', 'en' => 'Section Tooltip'],
+            ]
         ];
-        $collapsedBlockUserFieldId = $oUserTypeEntity->Add($collapsedBlockUserField);
-        if (!$collapsedBlockUserFieldId) {
-            if ($ex = $APPLICATION->GetException()) {
-                $APPLICATION->ThrowException(Loc::getMessage('QWELP_SITE_SETTINGS_UF_ADD_ERROR') . $ex->GetString());
-            } else {
-                $APPLICATION->ThrowException(Loc::getMessage('QWELP_SITE_SETTINGS_UF_ADD_ERROR_UNKNOWN'));
+        foreach ($stringUfFields as $uf) {
+            $ufData = [
+                'ENTITY_ID' => 'IBLOCK_' . $iblockId . '_SECTION',
+                'USER_TYPE_ID' => 'string',
+                'MULTIPLE' => 'N',
+                'MANDATORY' => 'N',
+                'SHOW_FILTER' => 'N',
+                'SHOW_IN_LIST' => 'Y',
+                'EDIT_IN_LIST' => 'Y',
+                'IS_SEARCHABLE' => 'N',
+                'SETTINGS' => ['DEFAULT_VALUE' => '', 'SIZE' => 50, 'ROWS' => 1],
+                'LIST_COLUMN_LABEL' => $uf['EDIT_FORM_LABEL'],
+                'LIST_FILTER_LABEL' => $uf['EDIT_FORM_LABEL'],
+            ];
+            if (!$oUserTypeEntity->Add(array_merge($uf, $ufData))) {
+                if ($ex = $APPLICATION->GetException()) {
+                    $APPLICATION->ThrowException(Loc::getMessage('QWELP_SITE_SETTINGS_UF_ADD_ERROR') . ' ' . $ex->GetString());
+                }
+                return false;
             }
-            return false;
         }
 
-        $fields = [
-            // ENTITY_ID задаёт, для каких сущностей создаётся поле.
-            // Для разделов: IBLOCK_{ID}_SECTION
-            'ENTITY_ID'           => "IBLOCK_{$iblockId}_SECTION",
-            // MACHINE_NAME поля — обязательно с префиксом UF_
-            'FIELD_NAME'          => 'UF_HIDDEN_ELEMENTS_TITLE',
-            // Тип поля — строка
-            'USER_TYPE_ID'        => 'string',
-            'XML_ID'              => '',
-            'SORT'                => 100,
-            'MULTIPLE'            => 'N',
-            'MANDATORY'           => 'N',
-            'SHOW_FILTER'         => 'S',
-            'SHOW_IN_LIST'        => 'Y',
-            'EDIT_IN_LIST'        => 'Y',
-            'IS_SEARCHABLE'       => 'N',
-            // Дополнительные настройки — размер поля в форме
-            'SETTINGS'            => [
-                'SIZE' => 50,
-                'ROWS' => 1,
-            ],
-            // Названия поля в админке
-            'EDIT_FORM_LABEL'     => [
-                'ru' => 'Название для спрятанных элементов',
-                'en' => 'Title for hidden elements',
-            ],
-            'LIST_COLUMN_LABEL'   => [
-                'ru' => 'Название для спрятанных элементов',
-                'en' => 'Title for hidden elements',
-            ],
-            'LIST_FILTER_LABEL'   => [
-                'ru' => 'Название для спрятанных элементов',
-                'en' => 'Title for hidden elements',
-            ],
-        ];
-
-        $newId = $oUserTypeEntity->Add($fields);
-        if (!$newId) {
-            // В случае ошибки выведем её
-            global $APPLICATION;
-            $APPLICATION->ThrowException($oUserTypeEntity->LAST_ERROR);
-            return false;
-        }
-
-        $sectionTooltipUserField = [
-            'ENTITY_ID'         => 'IBLOCK_' . $iblockId . '_SECTION',
-            'FIELD_NAME'        => 'UF_SECTION_TOOLTIP',
-            'USER_TYPE_ID'      => 'string', // можно использовать 'text' для многострочного поля
-            'XML_ID'            => 'UF_SECTION_TOOLTIP',
-            'SORT'              => 540,
-            'MULTIPLE'          => 'N',
-            'MANDATORY'         => 'N',
-            'SHOW_FILTER'       => 'N',
-            'SHOW_IN_LIST'      => 'Y',
-            'EDIT_IN_LIST'      => 'Y',
-            'IS_SEARCHABLE'     => 'N',
-            'SETTINGS'          => [
-                'DEFAULT_VALUE' => '',
-                'SIZE' => 40,
-                'ROWS' => 5, // количество строк, если USER_TYPE_ID == 'text'
-                'MIN_LENGTH' => 0,
-                'MAX_LENGTH' => 0,
-                'REGEXP' => ''
-            ],
-            'EDIT_FORM_LABEL'   => ['ru' => 'Подсказка раздела', 'en' => 'Section Tooltip'],
-            'LIST_COLUMN_LABEL' => ['ru' => 'Подсказка', 'en' => 'Tooltip'],
-            'LIST_FILTER_LABEL' => ['ru' => 'Подсказка', 'en' => 'Tooltip'],
-            'HELP_MESSAGE'      => ['ru' => 'Текст подсказки, отображаемый рядом с заголовком раздела.', 'en' => 'Tooltip text displayed next to the section title.'],
-        ];
-
-        $sectionTooltipUserFieldId = $oUserTypeEntity->Add($sectionTooltipUserField);
-        if (!$sectionTooltipUserFieldId) {
-            if ($ex = $APPLICATION->GetException()) {
-                $APPLICATION->ThrowException(Loc::getMessage('QWELP_SITE_SETTINGS_UF_ADD_ERROR') . ': ' . $ex->GetString());
-            } else {
-                $APPLICATION->ThrowException(Loc::getMessage('QWELP_SITE_SETTINGS_UF_ADD_ERROR_UNKNOWN'));
-            }
-            return false;
-        }
 
         // === Свойства инфоблока ===
         $ibp = new \CIBlockProperty();
-
-        // VALUES — JSON для select/radio/radioImage
-        $valuesProperty = [
-            'IBLOCK_ID'     => $iblockId,
-            'NAME'          => 'Варианты значений',
-            'CODE'          => 'VALUES',
-            'PROPERTY_TYPE' => 'S',
-            'USER_TYPE'     => 'QwelpSettingsValues',
-            'MULTIPLE'      => 'N',
-            'IS_REQUIRED'   => 'N',
-            'HINT'          => 'JSON-массив вариантов для select/radio/radioImage',
-        ];
-        if (!$ibp->Add($valuesProperty)) {
-            $APPLICATION->ThrowException($ibp->LAST_ERROR);
-            return false;
-        }
-
-        // SHOW_TITLE — флаг отображения заголовка на сайте
-        $showTitleProperty = [
-            'IBLOCK_ID'     => $iblockId,
-            'NAME'          => 'Показать заголовок',
-            'CODE'          => 'SHOW_TITLE',
-            'PROPERTY_TYPE' => 'L',    // список
-            'LIST_TYPE'     => 'C',    // чекбоксы
-            'MULTIPLE'      => 'N',
-            'IS_REQUIRED'   => 'N',
-            'HINT'          => 'Отображать заголовок на странице',
-        ];
-        $showTitlePropertyId = $ibp->Add($showTitleProperty);
-        if (!$showTitlePropertyId) {
-            $APPLICATION->ThrowException($ibp->LAST_ERROR);
-            return false;
-        }
-
-        // Значения списка: «Нет» и «Да» (по умолчанию «Да»)
         $enum = new \CIBlockPropertyEnum();
-        $enum->Add(['PROPERTY_ID' => $showTitlePropertyId, 'VALUE' => 'Да',  'DEF' => 'Y']);
 
-        // HEADER_TITLE — флаг отображения в заголовке для свернутого блока
-        $showTitleProperty = [
-            'IBLOCK_ID'     => 110,
-            'NAME'          => 'Отображать в заголовке для свернутого блока',
-            'CODE'          => 'HEADER_TITLE',
-            'PROPERTY_TYPE' => 'L',    // список
-            'LIST_TYPE'     => 'C',    // чекбоксы
-            'MULTIPLE'      => 'N',
-            'IS_REQUIRED'   => 'N',
-            'HINT'          => 'Отображать заголовок на странице',
-        ];
-        $showTitlePropertyId = $ibp->Add($showTitleProperty);
-        if (!$showTitlePropertyId) {
-            $APPLICATION->ThrowException($ibp->LAST_ERROR);
-            return false;
-        }
-
-        // HIDDEN_CHECKBOX — флаг отображения в заголовке для свернутого блока
-        $showTitleProperty = [
-            'IBLOCK_ID'     => 120,
-            'NAME'          => 'Скрытое свойство с открытием checkbox',
-            'CODE'          => 'HIDDEN_CHECKBOX',
-            'PROPERTY_TYPE' => 'L',    // список
-            'LIST_TYPE'     => 'C',    // чекбоксы
-            'MULTIPLE'      => 'N',
-            'IS_REQUIRED'   => 'N',
-            'HINT'          => 'Отображать заголовок на странице',
-        ];
-        $showTitlePropertyId = $ibp->Add($showTitleProperty);
-        if (!$showTitlePropertyId) {
-            $APPLICATION->ThrowException($ibp->LAST_ERROR);
-            return false;
-        }
-
-// Значения списка: «Нет» и «Да» (по умолчанию «Да»)
-        $enum = new \CIBlockPropertyEnum();
-        $enum->Add(['PROPERTY_ID' => $showTitlePropertyId, 'VALUE' => 'Да',  'DEF' => 'N']);
-
-        // Значения списка: «Нет» и «Да» (по умолчанию «Да»)
-        $enum = new \CIBlockPropertyEnum();
-        $enum->Add(['PROPERTY_ID' => $showTitlePropertyId, 'VALUE' => 'Да',  'DEF' => 'N']);
-
-
-        // DETAIL_PROPERTY — флаг отображения заголовка на сайте
-        $showDetailProperty = [
-            'IBLOCK_ID'     => $iblockId,
-            'NAME'          => 'Детальное свойство',
-            'CODE'          => 'DETAIL_PROPERTY',
-            'PROPERTY_TYPE' => 'L',    // список
-            'LIST_TYPE'     => 'C',    // чекбоксы
-            'MULTIPLE'      => 'N',
-            'IS_REQUIRED'   => 'N',
-            'HINT'          => 'Отображать детальное свойство на странице',
-        ];
-        $showDetailPropertyId = $ibp->Add($showDetailProperty);
-        if (!$showDetailPropertyId) {
-            $APPLICATION->ThrowException($ibp->LAST_ERROR);
-            return false;
-        }
-
-        // Значения списка: «Нет» и «Да» (по умолчанию «Да»)
-        $enum = new \CIBlockPropertyEnum();
-        $enum->Add(['PROPERTY_ID' => $showDetailPropertyId, 'VALUE' => 'Да',  'DEF' => 'N']);
-
-
-        // HELP_TEXT — подсказка
-        $helpTextProperty = [
-            'IBLOCK_ID'     => $iblockId,
-            'NAME'          => 'Текст подсказки',
-            'CODE'          => 'HELP_TEXT',
-            'PROPERTY_TYPE' => 'S',
-            'MULTIPLE'      => 'N',
-            'IS_REQUIRED'   => 'N',
-            'HINT'          => 'Текст, показываемый при клике на ?',
-        ];
-        if (!$ibp->Add($helpTextProperty)) {
-            $APPLICATION->ThrowException($ibp->LAST_ERROR);
-            return false;
-        }
-
-        // HELP_IMAGE — картинка подсказки
-        $helpImageProperty = [
-            'IBLOCK_ID'     => $iblockId,
-            'NAME'          => 'Изображение подсказки',
-            'CODE'          => 'HELP_IMAGE',
-            'PROPERTY_TYPE' => 'F',
-            'MULTIPLE'      => 'N',
-            'IS_REQUIRED'   => 'N',
-            'HINT'          => 'Изображение, показываемое в подсказке',
-        ];
-        if (!$ibp->Add($helpImageProperty)) {
-            $APPLICATION->ThrowException($ibp->LAST_ERROR);
-            return false;
-        }
-
-        // PERCENT — текстовое поле для процента
-        $percentProperty = [
-            'IBLOCK_ID'     => $iblockId,
-            'NAME'          => 'Процент',
-            'CODE'          => 'PERCENT',
-            'PROPERTY_TYPE' => 'S', // Тип "строка"
-            'MULTIPLE'      => 'N',
-            'IS_REQUIRED'   => 'N',
-            'HINT'          => 'Введите значение в процентах',
-        ];
-        if (!$ibp->Add($percentProperty)) {
-            $APPLICATION->ThrowException($ibp->LAST_ERROR);
-            return false;
-        }
-
-        // === Разделы ===
-        $bs = new \CIBlockSection();
-        $sections = [
-            [
-                'NAME'       => 'Общие',
-                'CODE'       => 'general',
-                'SORT'       => 100,
-                'SUBSECTIONS'=> [
-                    [
-                        'NAME' => 'Основные',
-                        'CODE' => 'general_main',
-                        'SORT' => 110,
-                        'SUBSECTIONS' => [
-                            ['NAME' => 'Базовые настройки', 'CODE' => 'general_main_basic', 'SORT' => 111],
-                            ['NAME' => 'Расширенные', 'CODE' => 'general_main_advanced', 'SORT' => 112],
-                        ],
-                    ],
-                    [
-                        'NAME' => 'Дополнительные',
-                        'CODE' => 'general_additional',
-                        'SORT' => 120,
-                        'SUBSECTIONS' => [
-                            ['NAME' => 'Языковые настройки', 'CODE' => 'general_additional_lang', 'SORT' => 121],
-                            ['NAME' => 'Прочие настройки', 'CODE' => 'general_additional_other', 'SORT' => 122],
-                        ],
-                    ],
-                ],
-            ],
-            [
-                'NAME'       => 'Внешний вид',
-                'CODE'       => 'appearance',
-                'SORT'       => 200,
-                'SUBSECTIONS'=> [
-                    [
-                        'NAME' => 'Темы',
-                        'CODE' => 'appearance_themes',
-                        'SORT' => 210,
-                        'SUBSECTIONS' => [
-                            ['NAME' => 'Цветовые схемы', 'CODE' => 'appearance_themes_colors', 'SORT' => 211],
-                            ['NAME' => 'Шрифты', 'CODE' => 'appearance_themes_fonts', 'SORT' => 212],
-                        ],
-                    ],
-                    [
-                        'NAME' => 'Элементы',
-                        'CODE' => 'appearance_elements',
-                        'SORT' => 220,
-                        'SUBSECTIONS' => [
-                            ['NAME' => 'Кнопки и формы', 'CODE' => 'appearance_elements_buttons', 'SORT' => 221],
-                            ['NAME' => 'Изображения', 'CODE' => 'appearance_elements_images', 'SORT' => 222],
-                        ],
-                    ],
-                ],
-            ],
-            [
-                'NAME'       => 'Уведомления',
-                'CODE'       => 'notifications',
-                'SORT'       => 300,
-                'SUBSECTIONS'=> [
-                    [
-                        'NAME' => 'Email',
-                        'CODE' => 'notifications_email',
-                        'SORT' => 310,
-                        'SUBSECTIONS' => [
-                            ['NAME' => 'Шаблоны писем', 'CODE' => 'notifications_email_templates', 'SORT' => 311],
-                            ['NAME' => 'Настройки отправки', 'CODE' => 'notifications_email_settings', 'SORT' => 312],
-                        ],
-                    ],
-                    [
-                        'NAME' => 'Системные',
-                        'CODE' => 'notifications_system',
-                        'SORT' => 320,
-                        'SUBSECTIONS' => [
-                            ['NAME' => 'Всплывающие уведомления', 'CODE' => 'notifications_system_popup', 'SORT' => 321],
-                            ['NAME' => 'Журнал событий', 'CODE' => 'notifications_system_log', 'SORT' => 322],
-                        ],
-                    ],
-                ],
-            ],
-            [
-                'NAME'       => 'Безопасность',
-                'CODE'       => 'security',
-                'SORT'       => 400,
-                'SUBSECTIONS'=> [
-                    [
-                        'NAME' => 'Авторизация',
-                        'CODE' => 'security_auth',
-                        'SORT' => 410,
-                        'SUBSECTIONS' => [
-                            ['NAME' => 'Методы входа', 'CODE' => 'security_auth_methods', 'SORT' => 411],
-                            ['NAME' => 'Пароли', 'CODE' => 'security_auth_passwords', 'SORT' => 412],
-                        ],
-                    ],
-                    [
-                        'NAME' => 'Защита',
-                        'CODE' => 'security_protection',
-                        'SORT' => 420,
-                        'SUBSECTIONS' => [
-                            ['NAME' => 'Антиспам', 'CODE' => 'security_protection_antispam', 'SORT' => 421],
-                            ['NAME' => 'Брандмауэр', 'CODE' => 'security_protection_firewall', 'SORT' => 422],
-                        ],
-                    ],
-                ],
-            ],
-            [
-                'NAME'       => 'Интеграции',
-                'CODE'       => 'integration',
-                'SORT'       => 500,
-                'SUBSECTIONS'=> [
-                    [
-                        'NAME' => 'API',
-                        'CODE' => 'integration_api',
-                        'SORT' => 510,
-                        'SUBSECTIONS' => [
-                            ['NAME' => 'Ключи доступа', 'CODE' => 'integration_api_keys', 'SORT' => 511],
-                            ['NAME' => 'Ограничения', 'CODE' => 'integration_api_limits', 'SORT' => 512],
-                        ],
-                    ],
-                    [
-                        'NAME' => 'Сервисы',
-                        'CODE' => 'integration_services',
-                        'SORT' => 520,
-                        'SUBSECTIONS' => [
-                            ['NAME' => 'Социальные сети', 'CODE' => 'integration_services_social', 'SORT' => 521],
-                            ['NAME' => 'Платежные системы', 'CODE' => 'integration_services_payment', 'SORT' => 522],
-                        ],
-                    ],
-                ],
-            ],
+        $properties = [
+            ['NAME' => 'Варианты значений', 'CODE' => 'VALUES', 'PROPERTY_TYPE' => 'S', 'USER_TYPE' => 'QwelpSettingsValues', 'HINT' => 'JSON-массив вариантов'],
+            ['NAME' => 'Показать заголовок', 'CODE' => 'SHOW_TITLE', 'PROPERTY_TYPE' => 'L', 'LIST_TYPE' => 'C', 'HINT' => 'Отображать заголовок на странице'],
+            ['NAME' => 'Отображать в заголовке для свернутого блока', 'CODE' => 'HEADER_TITLE', 'PROPERTY_TYPE' => 'L', 'LIST_TYPE' => 'C', 'HINT' => 'Показывать в общем заголовке свернутого блока'],
+            ['NAME' => 'Скрытое свойство с открытием checkbox', 'CODE' => 'HIDDEN_CHECKBOX', 'PROPERTY_TYPE' => 'L', 'LIST_TYPE' => 'C', 'HINT' => 'Скрытое свойство'],
+            ['NAME' => 'Детальное свойство', 'CODE' => 'DETAIL_PROPERTY', 'PROPERTY_TYPE' => 'L', 'LIST_TYPE' => 'C', 'HINT' => 'Отображать детальное свойство на странице'],
+            ['NAME' => 'Текст подсказки', 'CODE' => 'HELP_TEXT', 'PROPERTY_TYPE' => 'S', 'HINT' => 'Текст, показываемый при клике на ?'],
+            ['NAME' => 'Изображение подсказки', 'CODE' => 'HELP_IMAGE', 'PROPERTY_TYPE' => 'F', 'HINT' => 'Изображение, показываемое в подсказке'],
+            ['NAME' => 'Процент', 'CODE' => 'PERCENT', 'PROPERTY_TYPE' => 'S', 'HINT' => 'Введите значение в процентах'],
         ];
 
-        $sectionIds    = [];
-        $subsectionIds = [];
-
-        foreach ($sections as $section) {
-            // Если код не задан, транслитерируем из названия
-            $sectionCode = trim($section['CODE'] ?? '');
-            if ($sectionCode === '') {
-                $sectionCode = transliterateString($section['NAME']);
+        foreach ($properties as $prop) {
+            $prop['IBLOCK_ID'] = $iblockId;
+            $propId = $ibp->Add($prop);
+            if (!$propId) {
+                $APPLICATION->ThrowException($ibp->LAST_ERROR);
+                return false;
             }
-
-            // Проверяем уникальность внутри инфоблока
-            $exists = \CIBlockSection::GetList(
-                [],
-                [
-                    'IBLOCK_ID' => $iblockId,
-                    'CODE'      => $sectionCode,
-                ],
-                false,
-                ['ID'],
-                ['nTopCount' => 1]
-            )->Fetch();
-
-            if ($exists) {
-                // Если код уже используется, добавляем к нему уникальный суффикс
-                $sectionCode .= '-' . rand(100, 999);
-            }
-
-            $sectionFields = [
-                'ACTIVE'        => 'Y',
-                'IBLOCK_ID'     => $iblockId,
-                'NAME'          => $section['NAME'],
-                'CODE'          => $sectionCode,  // Обязательное поле
-                'SORT'          => $section['SORT'],
-                'IS_REQUIRED'   => 'Y',
-            ];
-            $sectionId = $bs->Add($sectionFields);
-            if (!$sectionId) {
-                $APPLICATION->ThrowException($bs->LAST_ERROR);
-            } else {
-                // Сохраняем ID раздела по его коду (используем сгенерированный код)
-                $sectionIds[$sectionCode] = $sectionId;
-
-                if (!empty($section['SUBSECTIONS'])) {
-                    foreach ($section['SUBSECTIONS'] as $sub) {
-                        // Если код не задан, транслитерируем из названия
-                        $subCode = trim($sub['CODE'] ?? '');
-                        if ($subCode === '') {
-                            $subCode = transliterateString($sub['NAME']);
-                        }
-
-                        // Проверяем уникальность внутри инфоблока
-                        $exists = \CIBlockSection::GetList(
-                            [],
-                            [
-                                'IBLOCK_ID' => $iblockId,
-                                'CODE'      => $subCode,
-                            ],
-                            false,
-                            ['ID'],
-                            ['nTopCount' => 1]
-                        )->Fetch();
-
-                        if ($exists) {
-                            // Если код уже используется, добавляем к нему уникальный суффикс
-                            $subCode .= '-' . rand(100, 999);
-                        }
-
-                        $subFields = [
-                            'ACTIVE'            => 'Y',
-                            'IBLOCK_ID'         => $iblockId,
-                            'NAME'              => $sub['NAME'],
-                            'CODE'              => $subCode,  // Обязательное поле
-                            'SORT'              => $sub['SORT'],
-                            'IBLOCK_SECTION_ID' => $sectionId,
-                        ];
-                        $subId = $bs->Add($subFields);
-                        if (!$subId) {
-                            $APPLICATION->ThrowException($bs->LAST_ERROR);
-                        } else {
-                            $subsectionIds[$subCode] = $subId;
-
-                            // Добавляем разделы третьего уровня
-                            if (!empty($sub['SUBSECTIONS'])) {
-                                foreach ($sub['SUBSECTIONS'] as $sub3) {
-                                    // Если код не задан, транслитерируем из названия
-                                    $sub3Code = trim($sub3['CODE'] ?? '');
-                                    if ($sub3Code === '') {
-                                        $sub3Code = transliterateString($sub3['NAME']);
-                                    }
-
-                                    // Проверяем уникальность внутри инфоблока
-                                    $exists3 = \CIBlockSection::GetList(
-                                        [],
-                                        [
-                                            'IBLOCK_ID' => $iblockId,
-                                            'CODE'      => $sub3Code,
-                                        ],
-                                        false,
-                                        ['ID'],
-                                        ['nTopCount' => 1]
-                                    )->Fetch();
-
-                                    if ($exists3) {
-                                        // Если код уже используется, добавляем к нему уникальный суффикс
-                                        $sub3Code .= '-' . rand(100, 999);
-                                    }
-
-                                    $sub3Fields = [
-                                        'ACTIVE'            => 'Y',
-                                        'IBLOCK_ID'         => $iblockId,
-                                        'NAME'              => $sub3['NAME'],
-                                        'CODE'              => $sub3Code,  // Обязательное поле
-                                        'SORT'              => $sub3['SORT'],
-                                        'IBLOCK_SECTION_ID' => $subId,
-                                    ];
-                                    $sub3Id = $bs->Add($sub3Fields);
-                                    if (!$sub3Id) {
-                                        $APPLICATION->ThrowException($bs->LAST_ERROR);
-                                    } else {
-                                        $subsectionIds[$sub3Code] = $sub3Id;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+            if ($prop['PROPERTY_TYPE'] === 'L') {
+                $enum->Add(['PROPERTY_ID' => $propId, 'VALUE' => 'Да', 'DEF' => ($prop['CODE'] === 'SHOW_TITLE' ? 'Y' : 'N'), 'SORT' => 100]);
             }
         }
 
-        // === Элементы (настройки) ===
-        $settings = [
-            // Общие — Основные — Базовые настройки
-            [
-                'NAME'          => 'Включить функцию',
-                'CODE'          => 'ENABLE_FEATURE',
-                'SECTION_CODE'  => 'general_main_basic',
-                'TYPE'          => 'checkbox',
-                'HELP_TEXT'     => 'Включает основную функциональность модуля.',
-                'HELP_IMAGE'    => '/img/help-general.png',
-                'SORT'          => 100,
-            ],
-            // Общие — Основные — Расширенные
-            [
-                'NAME'          => 'Расширенные настройки',
-                'CODE'          => 'ADVANCED_SETTINGS',
-                'SECTION_CODE'  => 'general_main_advanced',
-                'TYPE'          => 'checkbox',
-                'HELP_TEXT'     => 'Включает расширенные настройки модуля.',
-                'HELP_IMAGE'    => '/img/help-general.png',
-                'SORT'          => 110,
-            ],
-            // Общие — Дополнительные — Языковые настройки
-            [
-                'NAME'          => 'Язык интерфейса',
-                'CODE'          => 'LANGUAGE',
-                'SECTION_CODE'  => 'general_additional_lang',
-                'TYPE'          => 'select',
-                'VALUES'        => [
-                    'TEXT' => json_encode([
-                        ['value' => 'ru', 'label' => 'Русский'],
-                        ['value' => 'en', 'label' => 'English'],
-                        ['value' => 'de', 'label' => 'Deutsch'],
-                    ]),
-                    'TYPE' => 'html',
-                ],
-                'HELP_TEXT'     => 'Выберите язык для отображения всех подписей.',
-                'HELP_IMAGE'    => '',
-                'SORT'          => 200,
-            ],
-            // Общие — Дополнительные — Прочие настройки
-            [
-                'NAME'          => 'Прочие настройки',
-                'CODE'          => 'OTHER_SETTINGS',
-                'SECTION_CODE'  => 'general_additional_other',
-                'TYPE'          => 'checkbox',
-                'HELP_TEXT'     => 'Включает прочие настройки модуля.',
-                'HELP_IMAGE'    => '',
-                'SORT'          => 210,
-            ],
-
-            // Внешний вид — Темы — Цветовые схемы
-            [
-                'NAME'          => 'Тип оформления',
-                'CODE'          => 'LAYOUT_TYPE',
-                'SECTION_CODE'  => 'appearance_themes_colors',
-                'TYPE'          => 'radio',
-                'VALUES'        => [
-                    'TEXT' => json_encode([
-                        ['value' => 'light', 'label' => 'Светлый'],
-                        ['value' => 'dark',  'label' => 'Тёмный'],
-                    ]),
-                    'TYPE' => 'html',
-                ],
-                'HELP_TEXT'     => 'Переключает между светлой и тёмной темой.',
-                'HELP_IMAGE'    => '/img/help-appearance.png',
-                'SORT'          => 100,
-            ],
-            // Внешний вид — Темы — Шрифты
-            [
-                'NAME'          => 'Шрифт',
-                'CODE'          => 'FONT_FAMILY',
-                'SECTION_CODE'  => 'appearance_themes_fonts',
-                'TYPE'          => 'select',
-                'VALUES'        => [
-                    'TEXT' => json_encode([
-                        ['value' => 'arial', 'label' => 'Arial'],
-                        ['value' => 'times', 'label' => 'Times New Roman'],
-                        ['value' => 'verdana', 'label' => 'Verdana'],
-                    ]),
-                    'TYPE' => 'html',
-                ],
-                'HELP_TEXT'     => 'Выберите шрифт для интерфейса.',
-                'HELP_IMAGE'    => '',
-                'SORT'          => 110,
-            ],
-            // Внешний вид — Элементы — Кнопки и формы
-            [
-                'NAME'          => 'Показать заголовок',
-                'CODE'          => 'SHOW_TITLE',
-                'SECTION_CODE'  => 'appearance_elements_buttons',
-                'TYPE'          => 'checkbox',
-                'HELP_TEXT'     => 'Отображать заголовок на странице',
-                'HELP_IMAGE'    => '',
-                'SORT'          => 300,
-            ],
-            // Внешний вид — Элементы — Изображения
-            [
-                'NAME'          => 'Фоновая тема',
-                'CODE'          => 'THEME_IMAGE',
-                'SECTION_CODE'  => 'appearance_elements_images',
-                'TYPE'          => 'radioImage',
-                'VALUES'        => [
-                    'TEXT' => json_encode([
-                        ['value' => 'mountains', 'image' => '/img/mountains.jpg'],
-                        ['value' => 'sea',       'image' => '/img/sea.jpg'],
-                        ['value' => 'forest',    'image' => '/img/forest.jpg'],
-                    ]),
-                    'TYPE' => 'html',
-                ],
-                'HELP_TEXT'     => 'Выберите изображение для фонового баннера.',
-                'HELP_IMAGE'    => '',
-                'SORT'          => 200,
-            ],
-
-            // Уведомления — Email — Шаблоны писем
-            [
-                'NAME'          => 'Шаблон письма',
-                'CODE'          => 'EMAIL_TEMPLATE',
-                'SECTION_CODE'  => 'notifications_email_templates',
-                'TYPE'          => 'select',
-                'VALUES'        => [
-                    'TEXT' => json_encode([
-                        ['value' => 'default', 'label' => 'Стандартный'],
-                        ['value' => 'custom', 'label' => 'Пользовательский'],
-                    ]),
-                    'TYPE' => 'html',
-                ],
-                'HELP_TEXT'     => 'Выберите шаблон для email-уведомлений.',
-                'HELP_IMAGE'    => '',
-                'SORT'          => 110,
-            ],
-            // Уведомления — Email — Настройки отправки
-            [
-                'NAME'          => 'Email-уведомления',
-                'CODE'          => 'EMAIL_NOTIFY',
-                'SECTION_CODE'  => 'notifications_email_settings',
-                'TYPE'          => 'checkbox',
-                'HELP_TEXT'     => 'Получать уведомления о важных событиях на почту.',
-                'HELP_IMAGE'    => '',
-                'SORT'          => 100,
-            ],
-            // Уведомления — Системные — Всплывающие уведомления
-            [
-                'NAME'          => 'Всплывающие уведомления',
-                'CODE'          => 'POPUP_NOTIFY',
-                'SECTION_CODE'  => 'notifications_system_popup',
-                'TYPE'          => 'checkbox',
-                'HELP_TEXT'     => 'Показывать всплывающие уведомления.',
-                'HELP_IMAGE'    => '',
-                'SORT'          => 120,
-            ],
-            // Уведомления — Системные — Журнал событий
-            [
-                'NAME'          => 'Частота уведомлений',
-                'CODE'          => 'NOTIFY_FREQUENCY',
-                'SECTION_CODE'  => 'notifications_system_log',
-                'TYPE'          => 'select',
-                'VALUES'        => [
-                    'TEXT' => json_encode([
-                        ['value' => 'instant','label' => 'Мгновенно'],
-                        ['value' => 'hourly', 'label' => 'Каждый час'],
-                        ['value' => 'daily',  'label' => 'Раз в сутки'],
-                    ]),
-                    'TYPE' => 'html',
-                ],
-                'HELP_TEXT'     => 'Как часто отправлять уведомления.',
-                'HELP_IMAGE'    => '',
-                'SORT'          => 200,
-            ],
-
-            // Безопасность — Авторизация — Методы входа
-            [
-                'NAME'          => 'Двухфакторная аутентификация',
-                'CODE'          => 'TWO_FACTOR',
-                'SECTION_CODE'  => 'security_auth_methods',
-                'TYPE'          => 'checkbox',
-                'HELP_TEXT'     => 'Добавляет второй уровень защиты при входе.',
-                'HELP_IMAGE'    => '/img/help-security.png',
-                'SORT'          => 100,
-            ],
-            // Безопасность — Авторизация — Пароли
-            [
-                'NAME'          => 'Сложность пароля',
-                'CODE'          => 'PASSWORD_COMPLEXITY',
-                'SECTION_CODE'  => 'security_auth_passwords',
-                'TYPE'          => 'select',
-                'VALUES'        => [
-                    'TEXT' => json_encode([
-                        ['value' => 'low', 'label' => 'Низкая'],
-                        ['value' => 'medium', 'label' => 'Средняя'],
-                        ['value' => 'high', 'label' => 'Высокая'],
-                    ]),
-                    'TYPE' => 'html',
-                ],
-                'HELP_TEXT'     => 'Выберите требуемую сложность пароля.',
-                'HELP_IMAGE'    => '',
-                'SORT'          => 130,
-            ],
-            // Безопасность — Защита — Антиспам
-            [
-                'NAME'          => 'Защита от спама',
-                'CODE'          => 'ANTISPAM',
-                'SECTION_CODE'  => 'security_protection_antispam',
-                'TYPE'          => 'checkbox',
-                'HELP_TEXT'     => 'Включает защиту от спама.',
-                'HELP_IMAGE'    => '',
-                'SORT'          => 140,
-            ],
-            // Безопасность — Защита — Брандмауэр
-            [
-                'NAME'          => 'Таймаут сессии',
-                'CODE'          => 'SESSION_TIMEOUT',
-                'SECTION_CODE'  => 'security_protection_firewall',
-                'TYPE'          => 'select',
-                'VALUES'        => [
-                    'TEXT' => json_encode([
-                        ['value' => '15m','label' => '15 минут'],
-                        ['value' => '30m','label' => '30 минут'],
-                        ['value' => '1h', 'label' => '1 час'],
-                    ]),
-                    'TYPE' => 'html',
-                ],
-                'HELP_TEXT'     => 'Время неактивности перед выходом из системы.',
-                'HELP_IMAGE'    => '',
-                'SORT'          => 200,
-            ],
-
-            // Интеграции — API — Ключи доступа
-            [
-                'NAME'          => 'Включить API-доступ',
-                'CODE'          => 'ENABLE_API',
-                'SECTION_CODE'  => 'integration_api_keys',
-                'TYPE'          => 'checkbox',
-                'HELP_TEXT'     => 'Позволяет внешним сервисам обращаться к вашему сайту через API.',
-                'HELP_IMAGE'    => '',
-                'SORT'          => 100,
-            ],
-            // Интеграции — API — Ограничения
-            [
-                'NAME'          => 'Лимит запросов',
-                'CODE'          => 'API_RATE_LIMIT',
-                'SECTION_CODE'  => 'integration_api_limits',
-                'TYPE'          => 'select',
-                'VALUES'        => [
-                    'TEXT' => json_encode([
-                        ['value' => '100', 'label' => '100 запросов/мин'],
-                        ['value' => '500', 'label' => '500 запросов/мин'],
-                        ['value' => '1000', 'label' => '1000 запросов/мин'],
-                    ]),
-                    'TYPE' => 'html',
-                ],
-                'HELP_TEXT'     => 'Ограничение количества запросов к API.',
-                'HELP_IMAGE'    => '',
-                'SORT'          => 150,
-            ],
-            // Интеграции — Сервисы — Социальные сети
-            [
-                'NAME'          => 'Интеграция с соцсетями',
-                'CODE'          => 'SOCIAL_INTEGRATION',
-                'SECTION_CODE'  => 'integration_services_social',
-                'TYPE'          => 'checkbox',
-                'HELP_TEXT'     => 'Включает интеграцию с социальными сетями.',
-                'HELP_IMAGE'    => '',
-                'SORT'          => 160,
-            ],
-            // Интеграции — Сервисы — Платежные системы
-            [
-                'NAME'          => 'Режим API',
-                'CODE'          => 'API_MODE',
-                'SECTION_CODE'  => 'integration_services_payment',
-                'TYPE'          => 'radio',
-                'VALUES'        => [
-                    'TEXT' => json_encode([
-                        ['value' => 'read', 'label' => 'Только чтение'],
-                        ['value' => 'write','label' => 'Чтение и запись'],
-                    ]),
-                    'TYPE' => 'html',
-                ],
-                'HELP_TEXT'     => 'Определяет права операций в API.',
-                'HELP_IMAGE'    => '',
-                'SORT'          => 200,
-            ],
-        ];
-
-        $el = new \CIBlockElement();
-        foreach ($settings as $setting) {
-            $sectionId = $subsectionIds[$setting['SECTION_CODE']] ?? 0;
-            $elementFields = [
-                'IBLOCK_ID'         => $iblockId,
-                'NAME'              => $setting['NAME'],
-                'CODE'              => $setting['CODE'],
-                'ACTIVE'            => 'Y',
-                'SORT'              => $setting['SORT'],
-                'IBLOCK_SECTION_ID' => $sectionId,
-            ];
-
-            $elementId = $el->Add($elementFields);
-            if (!$elementId) {
-                $APPLICATION->ThrowException($el->LAST_ERROR);
-                continue;
-            }
-
-            $propValues = [
-                'HELP_TEXT' => $setting['HELP_TEXT'],
-            ];
-
-            // Обрабатываем VALUES + TYPE
-            if (isset($setting['VALUES'])) {
-                $propValues['VALUES'] = [
-                    'TEXT' => $setting['VALUES']['TEXT'],
-                    'TYPE' => $setting['TYPE'],
-                ];
-            } else {
-                $propValues['VALUES'] = [
-                    'TEXT' => '',
-                    'TYPE' => $setting['TYPE'],
-                ];
-            }
-
-            // HELP_IMAGE
-            if (!empty($setting['HELP_IMAGE'])) {
-                $filePath = $_SERVER['DOCUMENT_ROOT'] . $setting['HELP_IMAGE'];
-                if (file_exists($filePath)) {
-                    $propValues['HELP_IMAGE'] = \CFile::MakeFileArray($filePath);
-                }
-            }
-
-            \CIBlockElement::SetPropertyValuesEx($elementId, $iblockId, $propValues);
+        // === Создание структуры и наполнение данными ===
+        try {
+            $demodata = include(__DIR__ . '/demodata.php');
+            createSectionsAndElements($demodata, $iblockId, 0);
+        } catch (\Exception $e) {
+            $APPLICATION->ThrowException($e->getMessage());
+            return false;
         }
     }
 
@@ -1176,35 +337,31 @@ function InstallDB(): bool
 }
 
 /**
- * Удаляет инфоблок при удалении модуля
+ * Удаляет инфоблок и все связанные сущности при удалении модуля.
  *
  * @return bool
  */
 function UnInstallDB(): bool
 {
-    global $DB, $APPLICATION;
-
-    if (!Loader::includeModule('iblock')) {
-        return false;
-    }
+    global $APPLICATION;
 
     $iblockCode = 'site_settings';
     $iblockType = 'site_settings';
 
-    $dbIblock = \CIBlock::GetList(
-        [],
-        [
-            'CODE'              => $iblockCode,
-            'TYPE'              => $iblockType,
-            'CHECK_PERMISSIONS' => 'N',
-        ]
-    );
+    $dbIblock = \CIBlock::GetList([], ['CODE' => $iblockCode, 'TYPE' => $iblockType, 'CHECK_PERMISSIONS' => 'N']);
 
     if ($arIblock = $dbIblock->Fetch()) {
         $entity = new \CUserTypeEntity();
+        $fieldsToDelete = [
+            'UF_ENABLE_DRAG_AND_DROP',
+            'UF_DETAIL_PROPERTY',
+            'UF_COMMON_PROPERTY',
+            'UF_COLLAPSED_BLOCK',
+            'UF_HIDDEN_CHECKBOX',
+            'UF_HIDDEN_ELEMENTS_TITLE',
+            'UF_SECTION_TOOLTIP',
+        ];
 
-        // Удаляем пользовательские поля разделов
-        $fieldsToDelete = ['UF_ENABLE_DRAG_AND_DROP', 'UF_DETAIL_PROPERTY'];
         foreach ($fieldsToDelete as $fieldName) {
             $rsData = $entity->GetList([], [
                 'ENTITY_ID' => 'IBLOCK_' . $arIblock['ID'] . '_SECTION',
@@ -1215,26 +372,13 @@ function UnInstallDB(): bool
             }
         }
 
-        // Удаляем пользовательские поля элементов
-        $rsData = $entity->GetList([], [
-            'ENTITY_ID' => 'IBLOCK_' . $arIblock['ID'] . '_ELEMENT',
-            'FIELD_NAME' => 'UF_DETAIL_PROPERTY'
-        ]);
-        if ($arField = $rsData->Fetch()) {
-            $entity->Delete($arField['ID']);
+        if (!\CIBlock::Delete($arIblock['ID'])) {
+            $APPLICATION->ThrowException(Loc::getMessage('QWELP_SITE_SETTINGS_IBLOCK_DELETE_ERROR'));
+            return false;
         }
-
-        \CIBlock::Delete($arIblock['ID']);
     }
 
-    // Если инфоблоков данного типа больше нет — удаляем тип
-    $dbIblocks = \CIBlock::GetList(
-        [],
-        [
-            'TYPE'              => $iblockType,
-            'CHECK_PERMISSIONS' => 'N',
-        ]
-    );
+    $dbIblocks = \CIBlock::GetList([], ['TYPE' => $iblockType, 'CHECK_PERMISSIONS' => 'N']);
     if (!$dbIblocks->Fetch()) {
         \CIBlockType::Delete($iblockType);
     }
