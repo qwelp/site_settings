@@ -317,6 +317,17 @@
     color: #fff;               /* белый текст */
 }
 
+/* [NEW] Единственное добавленное правило для чекбокса */
+.settings-form__color-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+.settings-form__color-option label {
+    cursor: pointer;
+    color: #333;
+}
 
 /* Адаптивность для мобильных устройств */
 @media (max-width: 768px) {
