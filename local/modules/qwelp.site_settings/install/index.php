@@ -1,7 +1,7 @@
 <?php
 /**
  * Файл установки модуля qwelp.site_settings
- * 
+ *
  * @package qwelp.site_settings
  */
 
@@ -10,6 +10,7 @@ use Bitrix\Main\ModuleManager;
 use Bitrix\Main\Config\Option;
 use Bitrix\Main\Application;
 use Bitrix\Main\IO\Directory;
+use Bitrix\Main\EventManager;
 
 Loc::loadMessages(__FILE__);
 
@@ -82,20 +83,18 @@ class qwelp_site_settings extends CModule
 
     /**
      * Получает путь к модулю
-     * 
+     *
      * @return string
      */
-    protected function getModulePath()
+    protected function getModulePath(): string
     {
         $modulePath = str_replace('\\', '/', __DIR__);
-        $modulePath = substr($modulePath, 0, strpos($modulePath, '/install'));
-
-        return $modulePath;
+        return substr($modulePath, 0, strpos($modulePath, '/install'));
     }
 
     /**
      * Устанавливает модуль
-     * 
+     *
      * @return void
      */
     public function DoInstall()
@@ -106,13 +105,16 @@ class qwelp_site_settings extends CModule
             $APPLICATION->ThrowException(
                 Loc::getMessage('QWELP_SITE_SETTINGS_INSTALL_ERROR_VERSION')
             );
-            return false;
+            return;
         }
 
         ModuleManager::registerModule($this->MODULE_ID);
 
-        $this->InstallFiles();
+        // [FIXED] Сначала регистрируем события, чтобы система знала о наших типах
+        $this->InstallEvents();
+        // [FIXED] Затем устанавливаем БД, которая использует эти типы
         $this->InstallDB();
+        $this->InstallFiles();
 
         $APPLICATION->IncludeAdminFile(
             Loc::getMessage('QWELP_SITE_SETTINGS_INSTALL_TITLE'),
@@ -122,15 +124,18 @@ class qwelp_site_settings extends CModule
 
     /**
      * Удаляет модуль
-     * 
+     *
      * @return void
      */
     public function DoUninstall()
     {
         global $APPLICATION;
 
-        $this->UnInstallFiles();
+        // [FIXED] Сначала удаляем БД и файлы
         $this->UnInstallDB();
+        $this->UnInstallFiles();
+        // [FIXED] Затем снимаем регистрацию событий
+        $this->UnInstallEvents();
 
         ModuleManager::unRegisterModule($this->MODULE_ID);
 
@@ -142,124 +147,52 @@ class qwelp_site_settings extends CModule
 
     /**
      * Проверяет совместимость версии Битрикса
-     * 
+     *
      * @return bool
      */
-    protected function isVersionCompatible()
+    protected function isVersionCompatible(): bool
     {
         return CheckVersion(ModuleManager::getVersion('main'), '14.00.00');
     }
 
     /**
      * Устанавливает файлы модуля
-     * 
+     *
      * @return bool
      */
-    public function InstallFiles()
+    public function InstallFiles(): bool
     {
-        // 1) Копируем компоненты
         CopyDirFiles(
             $this->MODULE_PATH . '/install/components',
-            $_SERVER['DOCUMENT_ROOT'] . '/bitrix/components',
+            Application::getDocumentRoot() . '/bitrix/components',
             true, true
         );
-
-        // 2) Копируем административные прокси (необязательно, если их нет)
-        CopyDirFiles(
-            $this->MODULE_PATH . '/install/admin',
-            $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/admin',
-            true, true
-        );
-
-        // 3) Копируем JS в публичную папку
-        CopyDirFiles(
-            $this->MODULE_PATH . '/install/admin/options_control.js',
-            $_SERVER['DOCUMENT_ROOT'] . '/bitrix/js/' . $this->MODULE_ID . '/options_control.js',
-            true, true
-        );
-
-        // 4) Копируем CSS в публичную папку
-        CopyDirFiles(
-            $this->MODULE_PATH . '/install/admin/options_control.css',
-            $_SERVER['DOCUMENT_ROOT'] . '/bitrix/css/' . $this->MODULE_ID . '/options_control.css',
-            true, true
-        );
-
-        // 4.1) Копируем языковые файлы для JS
-        CopyDirFiles(
-            $this->MODULE_PATH . '/install/admin/lang',
-            $_SERVER['DOCUMENT_ROOT'] . '/bitrix/js/' . $this->MODULE_ID . '/lang',
-            true, true
-        );
-
-        // 5) Копируем шаблоны настроек
-        CopyDirFiles(
-            $this->MODULE_PATH . '/templates',
-            $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/templates',
-            true, true
-        );
-
-        // 6) Регистрируем обработчики событий
-        RegisterModuleDependences(
-            'main',
-            'OnAdminContextMenuShow',
-            $this->MODULE_ID,
-            '\Qwelp\SiteSettings\EventHandler',
-            'addAdminContextMenu',
-            100
-        );
-        RegisterModuleDependences(
-            'iblock',
-            'OnIBlockPropertyBuildList',
-            $this->MODULE_ID,
-            '\Qwelp\SiteSettings\EventHandler',
-            'onIBlockPropertyBuildList'
-        );
-
         return true;
     }
 
     /**
      * Удаляет файлы модуля
-     * 
+     *
      * @return bool
      */
-    public function UnInstallFiles()
+    public function UnInstallFiles(): bool
     {
-        // 1) Удаляем компоненты
-        \Bitrix\Main\IO\Directory::deleteDirectory(
-            $_SERVER['DOCUMENT_ROOT'] . '/bitrix/components/qwelp/site.settings'
+        Directory::deleteDirectory(
+            Application::getDocumentRoot() . '/bitrix/components/qwelp/site.settings'
         );
+        return true;
+    }
 
-        // 2) Удаляем административные прокси
-        \Bitrix\Main\IO\Directory::deleteDirectory(
-            $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/admin'
-        );
+    /**
+     * Регистрирует обработчики событий
+     *
+     * @return void
+     */
+    public function InstallEvents(): void
+    {
+        $eventManager = EventManager::getInstance();
 
-        // 3) Удаляем публичный JS-каталог
-        \Bitrix\Main\IO\Directory::deleteDirectory(
-            $_SERVER['DOCUMENT_ROOT'] . '/bitrix/js/' . $this->MODULE_ID
-        );
-
-        // 4) Удаляем публичный CSS-каталог
-        \Bitrix\Main\IO\Directory::deleteDirectory(
-            $_SERVER['DOCUMENT_ROOT'] . '/bitrix/css/' . $this->MODULE_ID
-        );
-
-        // 5) Удаляем шаблоны настроек
-        \Bitrix\Main\IO\Directory::deleteDirectory(
-            $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/templates'
-        );
-
-        // 6) Снимаем регистрацию обработчиков
-        UnRegisterModuleDependences(
-            'main',
-            'OnAdminContextMenuShow',
-            $this->MODULE_ID,
-            '\Qwelp\SiteSettings\EventHandler',
-            'addAdminContextMenu'
-        );
-        UnRegisterModuleDependences(
+        $eventManager->registerEventHandler(
             'iblock',
             'OnIBlockPropertyBuildList',
             $this->MODULE_ID,
@@ -267,24 +200,54 @@ class qwelp_site_settings extends CModule
             'onIBlockPropertyBuildList'
         );
 
-        return true;
+        $eventManager->registerEventHandler(
+            'main',
+            'OnUserTypeBuildList',
+            $this->MODULE_ID,
+            '\Qwelp\SiteSettings\EventHandler',
+            'onUserTypeBuildList'
+        );
+    }
+
+    /**
+     * Удаляет обработчики событий
+     *
+     * @return void
+     */
+    public function UnInstallEvents(): void
+    {
+        $eventManager = EventManager::getInstance();
+
+        $eventManager->unRegisterEventHandler(
+            'iblock',
+            'OnIBlockPropertyBuildList',
+            $this->MODULE_ID,
+            '\Qwelp\SiteSettings\EventHandler',
+            'onIBlockPropertyBuildList'
+        );
+
+        $eventManager->unRegisterEventHandler(
+            'main',
+            'OnUserTypeBuildList',
+            $this->MODULE_ID,
+            '\Qwelp\SiteSettings\EventHandler',
+            'onUserTypeBuildList'
+        );
     }
 
     /**
      * Устанавливает базу данных модуля
-     * 
+     *
      * @return bool
      */
-    public function InstallDB()
+    public function InstallDB(): bool
     {
-        global $DB, $APPLICATION;
-
-        // Подключаем файл с функцией InstallDB
+        global $APPLICATION;
         require_once($this->MODULE_PATH . '/install/db.php');
 
-        // Вызываем функцию создания инфоблока
         if (!InstallDB()) {
-            $APPLICATION->ThrowException(Loc::getMessage('QWELP_SITE_SETTINGS_INSTALL_ERROR_DB'));
+            // Это сообщение и выводится при ошибке
+            $APPLICATION->ThrowException(Loc::getMessage('QWELP_SITE_SETTINGS_INSTALL_ERROR_DB') ?: 'Ошибка при создании инфоблока настроек');
             return false;
         }
 
@@ -293,22 +256,14 @@ class qwelp_site_settings extends CModule
 
     /**
      * Удаляет базу данных модуля
-     * 
+     *
      * @return bool
      */
-    public function UnInstallDB()
+    public function UnInstallDB(): bool
     {
-        global $DB, $APPLICATION;
-
-        // Подключаем файл с функцией UnInstallDB
         require_once($this->MODULE_PATH . '/install/db.php');
-
-        // Вызываем функцию удаления инфоблока
         UnInstallDB();
-
-        // Удаляем опции модуля
         Option::delete($this->MODULE_ID);
-
         return true;
     }
 }

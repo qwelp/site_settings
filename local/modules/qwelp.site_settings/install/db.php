@@ -4,7 +4,7 @@
  * Файл для создания и удаления структуры данных модуля при установке/деинсталляции.
  *
  * @package qwelp.site_settings
- * @version 1.1.1
+ * @version 1.2.1
  */
 
 declare(strict_types=1);
@@ -295,6 +295,45 @@ function InstallDB(): bool
             }
         }
 
+        // Добавляем кастомное поле HtmlBlockType для разделов
+        $htmlBlockField = [
+            'ENTITY_ID'         => 'IBLOCK_' . $iblockId . '_SECTION',
+            'FIELD_NAME'        => 'UF_HTML_BLOCK',
+            'USER_TYPE_ID'      => 'qwelp_html_block', // ID нашего кастомного типа
+            'XML_ID'            => 'UF_HTML_BLOCK',
+            'SORT'              => 600,
+            'MULTIPLE'          => 'N', // [FIXED] Поле должно быть одиночным
+            'MANDATORY'         => 'N',
+            'SHOW_FILTER'       => 'N',
+            'SHOW_IN_LIST'      => 'Y',
+            'EDIT_IN_LIST'      => 'Y',
+            'IS_SEARCHABLE'     => 'N',
+            'SETTINGS'          => ['height' => 300],
+            'EDIT_FORM_LABEL'   => [
+                'ru' => 'HTML блок',
+                'en' => 'HTML block',
+            ],
+            'LIST_COLUMN_LABEL' => [ // [FIXED] Обновлена метка на единственное число
+                'ru' => 'HTML блок',
+                'en' => 'HTML block',
+            ],
+            'LIST_FILTER_LABEL' => [
+                'ru' => 'HTML блок',
+                'en' => 'HTML block',
+            ],
+            'HELP_MESSAGE'      => [
+                'ru' => 'Позволяет добавить произвольный HTML блок с заголовком в раздел.',
+                'en' => 'Allows adding a custom HTML block with a title to the section.',
+            ],
+        ];
+
+        if (!$oUserTypeEntity->Add($htmlBlockField)) {
+            if ($ex = $APPLICATION->GetException()) {
+                $APPLICATION->ThrowException(Loc::getMessage('QWELP_SITE_SETTINGS_UF_ADD_ERROR') . ' ' . $ex->GetString());
+            }
+            return false;
+        }
+
 
         // === Свойства инфоблока ===
         $ibp = new \CIBlockProperty();
@@ -360,6 +399,7 @@ function UnInstallDB(): bool
             'UF_HIDDEN_CHECKBOX',
             'UF_HIDDEN_ELEMENTS_TITLE',
             'UF_SECTION_TOOLTIP',
+            'UF_HTML_BLOCK',
         ];
 
         foreach ($fieldsToDelete as $fieldName) {
