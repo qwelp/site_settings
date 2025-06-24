@@ -10,6 +10,7 @@ namespace Qwelp\SiteSettings\Property;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\Page\Asset;
 use CFile;
+use Bitrix\Main\Diag\Debug;
 
 Loc::loadMessages(__FILE__);
 
@@ -48,7 +49,8 @@ class ValuesPropertyType
         global $APPLICATION;
         $moduleId = 'qwelp.site_settings';
 
-        // Добавляем языковые константы для JavaScript
+        // Debug::writeToFile($value, '1. RAW $value FROM DB', DEBUG_FILE_NAME);
+
         echo '<script>
             var OPTIONS_CONTROL_MESSAGES = {
                 VALUE: "' . \CUtil::JSEscape(Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_VALUE')) . '",
@@ -70,7 +72,6 @@ class ValuesPropertyType
         $fieldValue = htmlspecialcharsbx($strHTMLControlName['VALUE']);
         $fieldMode  = htmlspecialcharsbx($strHTMLControlName['DESCRIPTION']);
 
-        // Сырые данные из БД
         if ($value['VALUE'] == 'checkbox') {
             $currentJson = '{}';
         } else {
@@ -82,6 +83,8 @@ class ValuesPropertyType
         if (!is_array($data)) {
             $data = [];
         }
+
+        // Debug::writeToFile($data, '2. $data AFTER json_decode', DEBUG_FILE_NAME);
 
         $showPicker = (bool)($data['color_show_picker'] ?? false);
 
@@ -111,12 +114,22 @@ class ValuesPropertyType
 
         $jsonWithUrls = json_encode($data, JSON_UNESCAPED_UNICODE);
 
+        // [FIXED] Ключевое исправление. Более надежное определение активного режима.
         $mode = $value['DESCRIPTION'] ?: '';
         if ($mode === '') {
-            foreach (['checkbox','radio','radioImage','pathFile','select','color'] as $k) {
-                if (!empty($data[$k])) { $mode = $k; break; }
+            // Задаем приоритетный порядок проверки
+            $priorityOrder = ['color', 'radioImage', 'radio', 'select', 'pathFile', 'checkbox'];
+            foreach ($priorityOrder as $k) {
+                // Проверяем, что ключ существует и его значение не является пустым массивом
+                if (isset($data[$k]) && !empty($data[$k])) {
+                    $mode = $k;
+                    break;
+                }
             }
-            if ($mode === '') { $mode = 'checkbox'; }
+            // Если после всего перебора режим не найден (все массивы пусты), ставим по умолчанию
+            if ($mode === '') {
+                $mode = 'checkbox';
+            }
         }
 
         $rows = $data[$mode] ?? [];
@@ -135,17 +148,8 @@ class ValuesPropertyType
 
     private static function generateHtmlForm(array $rows, array $strHTMLControlName, string $mode, bool $showPicker): string
     {
-        $arTypes = [
-            'checkbox'   => 'Checkbox',
-            'radio'      => 'Radio',
-            'radioImage' => 'Radio Image',
-            'pathFile'   => 'Path to File',
-            'select'     => 'Select',
-            'color'      => 'Color',
-        ];
-
+        $arTypes = ['checkbox' => 'Checkbox', 'radio' => 'Radio', 'radioImage' => 'Radio Image', 'pathFile' => 'Path to File', 'select' => 'Select', 'color' => 'Color'];
         $uniqueId = htmlspecialcharsbx($strHTMLControlName['VALUE']);
-
         $html = '';
 
         $html .= '<div class="settings-form__dropdown">';
@@ -155,9 +159,7 @@ class ValuesPropertyType
             $selected = ($typeKey === $mode) ? ' selected' : '';
             $html .= '<option value="' . htmlspecialchars($typeKey) . '"' . $selected . '>' . htmlspecialchars($typeLabel) . '</option>';
         }
-        $html .= '</select>';
-        $html .= '</div>';
-
+        $html .= '</select></div>';
         $html .= '<div class="settings-form__group">';
         $html .= '<h3 class="settings-form__group-title">' . Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_ELEMENTS_SETTINGS') . '</h3>';
 
@@ -165,20 +167,13 @@ class ValuesPropertyType
         $checked = $showPicker ? 'checked' : '';
         $html .= '<div class="settings-form__color-option" ' . $pickerStyle . '>';
         $html .= '<input type="checkbox" id="color-picker-toggle-'.$uniqueId.'" class="settings-form__color-picker-toggle" '.$checked.'>';
-        $html .= '<label for="color-picker-toggle-'.$uniqueId.'">'.(Loc::getMessage('QWELP_SITE_SETTINGS_SHOW_COLOR_PICKER') ?: 'Показывать выбор цвета').'</label>';
-        $html .= '</div>';
-
+        $html .= '<label for="color-picker-toggle-'.$uniqueId.'">'.(Loc::getMessage('QWELP_SITE_SETTINGS_SHOW_COLOR_PICKER') ?: 'Показывать выбор цвета').'</label></div>';
         $html .= '<div class="settings-form__elements">';
 
-        if (count($rows) === 0 && $mode !== 'checkbox') {
-            $rows[] = [];
-        }
-
         foreach ($rows as $item) {
-            $value     = htmlspecialchars($item['value']   ?? '');
-            $label     = htmlspecialchars($item['label']   ?? '');
-            $pathFile  = htmlspecialchars($item['pathFile'] ?? '');
-
+            $value = htmlspecialchars($item['value'] ?? '');
+            $label = htmlspecialchars($item['label'] ?? '');
+            $pathFile = htmlspecialchars($item['pathFile'] ?? '');
             $html .= '<div class="settings-form__element" data-element>';
             if ($mode === 'color') {
                 $color = $value !== '' ? $value : '#000000';
@@ -186,40 +181,26 @@ class ValuesPropertyType
             } else {
                 $html .= '<input type="text" class="settings-form__input" placeholder="' . Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_VALUE') . '" value="' . $value . '">';
             }
-            $html .= '<input type="text" class="settings-form__input" placeholder="' . Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_LABEL') . '"   value="' . $label . '">';
-
+            $html .= '<input type="text" class="settings-form__input" placeholder="' . Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_LABEL') . '" value="' . $label . '">';
             if ($mode === 'pathFile') {
                 $html .= '<input type="text" class="settings-form__input" placeholder="' . Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_PATH_TO_FILE') . '" value="' . $pathFile . '">';
             }
             if ($mode === 'radioImage') {
-                $html .= '<span class="adm-input-file">';
-                $html .= '<span>' . Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_ADD_FILE') . '</span>';
-                $html .= '<input type="file" class="settings-form__file adm-designed-file">';
-                $html .= '</span>';
+                $html .= '<span class="adm-input-file"><span>' . Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_ADD_FILE') . '</span><input type="file" class="settings-form__file adm-designed-file"></span>';
             }
-
-            // [NEW] Добавляем кнопку удаления для каждой строки
-            $html .= '<button type="button" class="settings-form__delete-row" title="'.Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_DELETE').'">×</button>';
-
-            $html .= '</div>'; // .settings-form__element
+            $html .= '<button type="button" class="settings-form__delete-row" title="'.Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_DELETE').'">×</button></div>';
         }
-
-        $html .= '</div>'; // .settings-form__elements
+        $html .= '</div>';
 
         $buttonStyle = ($mode === 'checkbox') ? 'style="display:none;"' : '';
         $html .= '<input type="button" class="settings-form__button" value="' . Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_ADD_ROW') . '" '.$buttonStyle.'/>';
-
         $html .= '</div>';
-
         return $html;
     }
 
     public static function convertToDB($arProperty, $value): array
     {
-        return [
-            'VALUE'       => $value['VALUE'] ?? '{}',
-            'DESCRIPTION' => $value['DESCRIPTION'] ?? '',
-        ];
+        return ['VALUE' => $value['VALUE'] ?? '{}', 'DESCRIPTION' => $value['DESCRIPTION'] ?? ''];
     }
 
     public static function convertFromDB($arProperty, $value)

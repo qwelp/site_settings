@@ -11,9 +11,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const colorPickerOption = root.querySelector('.settings-form__color-option');
     const colorPickerToggle = colorPickerOption ? colorPickerOption.querySelector('.settings-form__color-picker-toggle') : null;
 
+    // [FIXED] Используем initialData только для первоначального рендеринга, а не как постоянное хранилище.
     const initialData = JSON.parse(root.dataset.initialJson || '{}');
-
-    const tempValues = initialData;
 
     function generateRowHtml(type, item = {}) {
         const v = item.value || "";
@@ -35,7 +34,6 @@ document.addEventListener("DOMContentLoaded", function () {
             html += '<input type="file" name="file" class="settings-form__file adm-designed-file">';
             html += '</span>';
         }
-        // [NEW] Добавляем HTML кнопки удаления
         html += `<button type="button" class="settings-form__delete-row" title="${OPTIONS_CONTROL_MESSAGES.DELETE}">×</button>`;
         html += '</div>';
         return html;
@@ -48,10 +46,7 @@ document.addEventListener("DOMContentLoaded", function () {
             preview.className = 'settings-form__preview';
             row.appendChild(preview);
         }
-        preview.innerHTML = `
-                <img src="${src}" class="settings-form__thumb" alt="${OPTIONS_CONTROL_MESSAGES.PREVIEW}">
-                <button type="button" class="settings-form__delete-file">${OPTIONS_CONTROL_MESSAGES.DELETE}</button>
-            `;
+        preview.innerHTML = `<img src="${src}" class="settings-form__thumb" alt="${OPTIONS_CONTROL_MESSAGES.PREVIEW}"><button type="button" class="settings-form__delete-file">${OPTIONS_CONTROL_MESSAGES.DELETE}</button>`;
     }
 
     function clearPreview(row) {
@@ -76,13 +71,19 @@ document.addEventListener("DOMContentLoaded", function () {
         const mode = dropdown.value;
         const items = getItemsFromDOM();
 
-        tempValues[mode] = items;
+        // [FIXED] Создаем чистый объект для сохранения. Никакого накопления.
+        const dataToSave = {};
 
-        if (colorPickerToggle) {
-            tempValues.color_show_picker = colorPickerToggle.checked;
+        // Записываем данные ТОЛЬКО для активного режима.
+        dataToSave[mode] = items;
+
+        // Если активный режим - color, добавляем состояние чекбокса.
+        if (mode === 'color' && colorPickerToggle) {
+            dataToSave.color_show_picker = colorPickerToggle.checked;
         }
 
-        hiddenValueInput.value = JSON.stringify(tempValues);
+        // Сохраняем "чистый" объект и текущий режим.
+        hiddenValueInput.value = JSON.stringify(dataToSave);
         hiddenModeInput.value = mode;
     }
 
@@ -91,7 +92,8 @@ document.addEventListener("DOMContentLoaded", function () {
             colorPickerOption.style.display = (mode === 'color') ? 'flex' : 'none';
         }
 
-        const itemsToRender = tempValues[mode] || [];
+        // Используем initialData только для поиска нужных опций
+        const itemsToRender = initialData[mode] || [];
         elementsContainer.innerHTML = '';
 
         if (itemsToRender.length === 0 && mode !== 'checkbox') {
@@ -128,8 +130,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     dropdown.addEventListener('change', function () {
-        const oldMode = hiddenModeInput.value;
-        tempValues[oldMode] = getItemsFromDOM();
+        // [FIXED] При смене режима просто перерисовываем контрол,
+        // данные из initialData будут взяты заново.
         renderControl(this.value);
     });
 
@@ -146,18 +148,14 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // [CHANGED] Обработчик клика теперь один, на контейнере root
     root.addEventListener('click', function(e) {
-        // Логика для кнопки удаления строки
         if (e.target.matches('.settings-form__delete-row')) {
             e.preventDefault();
             const row = e.target.closest('.settings-form__element');
             if (row) {
-                // Предотвращаем удаление последней строки, чтобы было куда вводить данные
                 if (elementsContainer.children.length > 1) {
                     row.remove();
                 } else {
-                    // Если строка последняя, просто очищаем ее поля
                     const inputs = row.querySelectorAll('input:not([type="color"])');
                     inputs.forEach(input => input.value = '');
                     const colorInput = row.querySelector('input[type="color"]');
@@ -167,7 +165,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
 
-        // Логика для кнопки удаления файла (radioImage)
         if (e.target.matches('.settings-form__delete-file')) {
             e.preventDefault();
             const row = e.target.closest('.settings-form__element');
