@@ -110,9 +110,7 @@ class qwelp_site_settings extends CModule
 
         ModuleManager::registerModule($this->MODULE_ID);
 
-        // [FIXED] Сначала регистрируем события, чтобы система знала о наших типах
         $this->InstallEvents();
-        // [FIXED] Затем устанавливаем БД, которая использует эти типы
         $this->InstallDB();
         $this->InstallFiles();
 
@@ -131,10 +129,8 @@ class qwelp_site_settings extends CModule
     {
         global $APPLICATION;
 
-        // [FIXED] Сначала удаляем БД и файлы
         $this->UnInstallDB();
         $this->UnInstallFiles();
-        // [FIXED] Затем снимаем регистрацию событий
         $this->UnInstallEvents();
 
         ModuleManager::unRegisterModule($this->MODULE_ID);
@@ -167,6 +163,18 @@ class qwelp_site_settings extends CModule
             Application::getDocumentRoot() . '/bitrix/components',
             true, true
         );
+
+        CopyDirFiles(
+            $this->MODULE_PATH . '/install/js',
+            Application::getDocumentRoot() . '/bitrix/js/' . $this->MODULE_ID,
+            true, true
+        );
+        CopyDirFiles(
+            $this->MODULE_PATH . '/install/css',
+            Application::getDocumentRoot() . '/bitrix/css/' . $this->MODULE_ID,
+            true, true
+        );
+
         return true;
     }
 
@@ -180,6 +188,14 @@ class qwelp_site_settings extends CModule
         Directory::deleteDirectory(
             Application::getDocumentRoot() . '/bitrix/components/qwelp/site.settings'
         );
+
+        Directory::deleteDirectory(
+            Application::getDocumentRoot() . '/bitrix/js/' . $this->MODULE_ID
+        );
+        Directory::deleteDirectory(
+            Application::getDocumentRoot() . '/bitrix/css/' . $this->MODULE_ID
+        );
+
         return true;
     }
 
@@ -192,14 +208,23 @@ class qwelp_site_settings extends CModule
     {
         $eventManager = EventManager::getInstance();
 
+        // [FIXED] Регистрируем ДВА обработчика для ОДНОГО события
         $eventManager->registerEventHandler(
             'iblock',
             'OnIBlockPropertyBuildList',
             $this->MODULE_ID,
             '\Qwelp\SiteSettings\EventHandler',
-            'onIBlockPropertyBuildList'
+            'onIBlockPropertyBuildListValues' // Метод для первого свойства
+        );
+        $eventManager->registerEventHandler(
+            'iblock',
+            'OnIBlockPropertyBuildList',
+            $this->MODULE_ID,
+            '\Qwelp\SiteSettings\EventHandler',
+            'onIBlockPropertyBuildListKeyValue' // Метод для второго свойства
         );
 
+        // Регистрация для UserType остается прежней
         $eventManager->registerEventHandler(
             'main',
             'OnUserTypeBuildList',
@@ -218,12 +243,20 @@ class qwelp_site_settings extends CModule
     {
         $eventManager = EventManager::getInstance();
 
+        // [FIXED] Удаляем ДВА обработчика
         $eventManager->unRegisterEventHandler(
             'iblock',
             'OnIBlockPropertyBuildList',
             $this->MODULE_ID,
             '\Qwelp\SiteSettings\EventHandler',
-            'onIBlockPropertyBuildList'
+            'onIBlockPropertyBuildListValues'
+        );
+        $eventManager->unRegisterEventHandler(
+            'iblock',
+            'OnIBlockPropertyBuildList',
+            $this->MODULE_ID,
+            '\Qwelp\SiteSettings\EventHandler',
+            'onIBlockPropertyBuildListKeyValue'
         );
 
         $eventManager->unRegisterEventHandler(
@@ -246,7 +279,6 @@ class qwelp_site_settings extends CModule
         require_once($this->MODULE_PATH . '/install/db.php');
 
         if (!InstallDB()) {
-            // Это сообщение и выводится при ошибке
             $APPLICATION->ThrowException(Loc::getMessage('QWELP_SITE_SETTINGS_INSTALL_ERROR_DB') ?: 'Ошибка при создании инфоблока настроек');
             return false;
         }

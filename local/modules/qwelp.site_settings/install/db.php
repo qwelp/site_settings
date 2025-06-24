@@ -348,6 +348,16 @@ function InstallDB(): bool
             ['NAME' => 'Текст подсказки', 'CODE' => 'HELP_TEXT', 'PROPERTY_TYPE' => 'S', 'HINT' => 'Текст, показываемый при клике на ?'],
             ['NAME' => 'Изображение подсказки', 'CODE' => 'HELP_IMAGE', 'PROPERTY_TYPE' => 'F', 'HINT' => 'Изображение, показываемое в подсказке'],
             ['NAME' => 'Процент', 'CODE' => 'PERCENT', 'PROPERTY_TYPE' => 'S', 'HINT' => 'Введите значение в процентах'],
+            // [NEW] Добавляем экземпляр нашего нового свойства "Ключ-Значение"
+            [
+                'NAME' => 'Технические данные',
+                'CODE' => 'TECH_DATA',
+                'PROPERTY_TYPE' => 'S',
+                'USER_TYPE' => \Qwelp\SiteSettings\Property\KeyValuePropertyType::USER_TYPE,
+                'MULTIPLE' => 'N',
+                'IS_REQUIRED' => 'N',
+                'HINT' => 'Сериализованный массив пар ключ-значение'
+            ],
         ];
 
         foreach ($properties as $prop) {

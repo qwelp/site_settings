@@ -17,14 +17,23 @@ Loc::loadMessages(__FILE__);
 class EventHandler
 {
     /**
-     * Обработчик события OnIBlockPropertyBuildList.
-     * Регистрирует кастомное свойство "Варианты значений"
+     * [FIXED] Регистрирует свойство "Варианты значений".
      *
      * @return array
      */
-    public static function onIBlockPropertyBuildList(): array
+    public static function onIBlockPropertyBuildListValues(): array
     {
         return \Qwelp\SiteSettings\Property\ValuesPropertyType::getUserTypeDescription();
+    }
+
+    /**
+     * [NEW] Регистрирует свойство "Ключ - Значение".
+     *
+     * @return array
+     */
+    public static function onIBlockPropertyBuildListKeyValue(): array
+    {
+        return \Qwelp\SiteSettings\Property\KeyValuePropertyType::getUserTypeDescription();
     }
 
     /**
