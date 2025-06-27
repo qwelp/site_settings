@@ -334,6 +334,44 @@ function InstallDB(): bool
             return false;
         }
 
+        // === Добавляем кастомное поле KeyValueUserType для разделов ===
+        $keyValueField = [
+            'ENTITY_ID'         => 'IBLOCK_' . $iblockId . '_SECTION',
+            'FIELD_NAME'        => 'UF_SECTIONS_KEY_VALUE', // Убедитесь, что это уникальное имя
+            'USER_TYPE_ID'      => 'QWELP_SECTION_KEY_VALUE', // ID нашего кастомного типа
+            'XML_ID'            => 'UF_SECTIONS_KEY_VALUE',
+            'SORT'              => 610, // Сортировка после HTML-блока
+            'MULTIPLE'          => 'Y', // Это поле должно быть МНОЖЕСТВЕННЫМ
+            'MANDATORY'         => 'N',
+            'SHOW_FILTER'       => 'N',
+            'SHOW_IN_LIST'      => 'Y',
+            'EDIT_IN_LIST'      => 'Y',
+            'IS_SEARCHABLE'     => 'N',
+            'SETTINGS'          => [], // Настройки для этого поля не требуются
+            'EDIT_FORM_LABEL'   => [
+                'ru' => 'Ключ-значение для раздела',
+                'en' => 'Key-Value for Section',
+            ],
+            'LIST_COLUMN_LABEL' => [
+                'ru' => 'Ключ-значение',
+                'en' => 'Key-Value',
+            ],
+            'LIST_FILTER_LABEL' => [
+                'ru' => 'Ключ-значение',
+                'en' => 'Key-Value',
+            ],
+            'HELP_MESSAGE'      => [
+                'ru' => 'Произвольные пары ключ-значение для данного раздела.',
+                'en' => 'Arbitrary key-value pairs for this section.',
+            ],
+        ];
+
+        if (!$oUserTypeEntity->Add($keyValueField)) {
+            if ($ex = $APPLICATION->GetException()) {
+                $APPLICATION->ThrowException(Loc::getMessage('QWELP_SITE_SETTINGS_UF_ADD_ERROR') . ' ' . $ex->GetString());
+            }
+            return false;
+        }
 
         // === Свойства инфоблока ===
         $ibp = new \CIBlockProperty();

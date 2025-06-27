@@ -37,17 +37,6 @@ class EventHandler
     }
 
     /**
-     * Обработчик события OnUserTypeBuildList.
-     * Регистрирует кастомный тип пользовательского поля (User Field Type).
-     *
-     * @return array
-     */
-    public static function onUserTypeBuildList(): array
-    {
-        return \Qwelp\SiteSettings\Property\HtmlBlockType::getUserTypeDescription();
-    }
-
-    /**
      * Обработчик события OnAdminContextMenuShow
      *
      * @param array $params Параметры события

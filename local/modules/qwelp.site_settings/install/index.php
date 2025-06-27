@@ -240,6 +240,14 @@ class qwelp_site_settings extends CModule
             '\Qwelp\SiteSettings\UserType\KeyValueUserType', // Class name as string
             'GetUserTypeDescription' // Method name as string
         );
+
+        $eventManager->registerEventHandler(
+            'main',
+            'OnUserTypeBuildList',
+            $this->MODULE_ID,
+            '\Qwelp\SiteSettings\UserType\HtmlBlockType', // Class name as string
+            'GetUserTypeDescription' // Method name as string
+        );
     }
 
     /**
@@ -280,6 +288,14 @@ class qwelp_site_settings extends CModule
             'OnUserTypeBuildList',
             $this->MODULE_ID,
             '\Qwelp\SiteSettings\UserType\KeyValueUserType', // Class name as string
+            'GetUserTypeDescription' // Method name as string
+        );
+
+        $eventManager->removeEventHandler(
+            'main',
+            'OnUserTypeBuildList',
+            $this->MODULE_ID,
+            '\Qwelp\SiteSettings\UserType\HtmlBlockType', // Class name as string
             'GetUserTypeDescription' // Method name as string
         );
     }
