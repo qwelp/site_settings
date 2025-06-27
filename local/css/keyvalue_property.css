@@ -1,0 +1,25 @@
+.kv-property-container .kv-property-table {
+    width: 100%;
+}
+
+.kv-property-container .kv-property-table input[type="text"] {
+    width: 98%;
+}
+
+.kv-property-container .kv-delete-row {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    line-height: 18px;
+    text-align: center;
+    border: 1px solid #ccc;
+    background: #f0f0f0;
+    cursor: pointer;
+    font-weight: bold;
+    color: #555;
+    padding: 0;
+}
+.kv-property-container .kv-delete-row:hover {
+    background: #e0e0e0;
+    border-color: #999;
+}
