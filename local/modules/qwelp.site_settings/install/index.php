@@ -232,6 +232,14 @@ class qwelp_site_settings extends CModule
             '\Qwelp\SiteSettings\EventHandler',
             'onUserTypeBuildList'
         );
+
+        $eventManager->registerEventHandler(
+            'main',
+            'OnUserTypeBuildList',
+            $this->MODULE_ID,
+            '\Qwelp\SiteSettings\UserType\KeyValueUserType', // Class name as string
+            'GetUserTypeDescription' // Method name as string
+        );
     }
 
     /**
@@ -265,6 +273,14 @@ class qwelp_site_settings extends CModule
             $this->MODULE_ID,
             '\Qwelp\SiteSettings\EventHandler',
             'onUserTypeBuildList'
+        );
+
+        $eventManager->removeEventHandler(
+            'main',
+            'OnUserTypeBuildList',
+            $this->MODULE_ID,
+            '\Qwelp\SiteSettings\UserType\KeyValueUserType', // Class name as string
+            'GetUserTypeDescription' // Method name as string
         );
     }
 

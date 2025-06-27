@@ -13,5 +13,6 @@
         'Qwelp\SiteSettings\Property\HtmlBlockType' => 'lib/Property/HtmlBlockType.php',
         'Qwelp\SiteSettings\Property\KeyValuePropertyType' => 'lib/Property/KeyValuePropertyType.php',
         'Qwelp\SiteSettings\SettingsManager' => 'lib/SettingsManager.php',
+        'Qwelp\SiteSettings\UserType\KeyValueUserType' => 'lib/UserType/KeyValueUserType.php',
     ]
 );
