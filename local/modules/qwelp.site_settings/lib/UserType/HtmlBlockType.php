@@ -1,11 +1,11 @@
 <?php
-namespace Qwelp\SiteSettings\UserType; // Изменено с Property на UserType для консистентности с KeyValueUserType
+namespace Qwelp\SiteSettings\UserType;
 
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\UserField\TypeBase;
-use Bitrix\Main\Text\HtmlFilter;
-use CUserTypeManager; // Добавляем use для CUserTypeManager
-use CHTMLEditor;    // Добавляем use для CHTMLEditor
+use CUserTypeManager;
+use CHTMLEditor;
+use CUtil; // Required for CUtil::JSEscape
 
 /**
  * Класс пользовательского типа поля "HTML-блок (Заголовок + Текст с редактором)" для Bitrix D7.
@@ -13,7 +13,6 @@ use CHTMLEditor;    // Добавляем use для CHTMLEditor
  * с использованием встроенного HTML-редактора Bitrix.
  *
  * Данные хранятся в базе данных в формате JSON-строки.
- * Наследуется от TypeBase для базовой функциональности пользовательских полей.
  */
 class HtmlBlockType extends TypeBase
 {
@@ -21,108 +20,80 @@ class HtmlBlockType extends TypeBase
 
     /**
      * Возвращает описание пользовательского типа поля.
-     * @return array
+     * @return array Массив с описанием пользовательского типа поля
      */
     public static function getUserTypeDescription(): array
     {
-        Loc::loadMessages(__FILE__); // Загружаем языковые фразы для текущего файла
+        Loc::loadMessages(__FILE__);
 
         return [
             'USER_TYPE_ID' => static::USER_TYPE_ID,
-            'CLASS_NAME' => __CLASS__,
-            'DESCRIPTION' => Loc::getMessage('QWELP_HTML_BLOCK_DESCRIPTION'),
-            'BASE_TYPE' => CUserTypeManager::BASE_TYPE_STRING, // Хранится как строка (JSON)
+            'CLASS_NAME'   => __CLASS__,
+            'DESCRIPTION'  => Loc::getMessage('QWELP_HTML_BLOCK_DESCRIPTION'),
+            'BASE_TYPE'    => CUserTypeManager::BASE_TYPE_STRING,
         ];
     }
 
     /**
      * Определяет тип колонки в базе данных для хранения значения.
      * Используется 'text' для возможности хранения длинных JSON-строк.
-     * @return string
+     * @return string Тип колонки в БД
      */
-    public static function getDbColumnType(): string
+    public static function GetDBColumnType()
     {
-        return 'text'; // MySQL TEXT тип для строки до 65,535 символов
-    }
-
-    /**
-     * Подготавливает и возвращает настройки поля.
-     * @param array $userField Текущие настройки поля.
-     * @return array Обработанные настройки поля.
-     */
-    public static function prepareSettings(array $userField): array
-    {
-        $height = (int)($userField['SETTINGS']['height'] ?? 200);
-        return ['height' => ($height < 200 ? 200 : $height)]; // Минимальная высота 200px
-    }
-
-    /**
-     * Возвращает HTML для формы настройки поля в административной части.
-     * Позволяет настроить высоту HTML-редактора.
-     *
-     * @param array|false $userField   Массив с описанием пользовательского поля (false при первом создании).
-     * @param array $htmlControl       Массив с элементами управления HTML.
-     * @param bool $bVarsFromForm      Флаг, указывающий, были ли настройки взяты из формы.
-     * @return string HTML-код формы настроек.
-     */
-    public static function getSettingsHTML($userField = false, $htmlControl, $bVarsFromForm): string
-    {
-        Loc::loadMessages(__FILE__); // Загружаем языковые фразы
-
-        $height = 200;
-        if ($bVarsFromForm) {
-            $height = (int)($GLOBALS[$htmlControl['NAME']]['height'] ?? $height);
-        } elseif (is_array($userField)) {
-            $height = (int)($userField['SETTINGS']['height'] ?? $height);
+        global $DB;
+        switch (strtolower($DB->type)) {
+            case "mysql":
+                return "text";
+            case "oracle":
+                return "varchar2(4000 char)";
+            case "mssql":
+                return "varchar(4000)";
         }
-        return '<tr><td>' . Loc::getMessage('USER_TYPE_HTML_HEIGHT') . ':</td><td><input type="text" name="' . $htmlControl['NAME'] . '[height]" size="10" maxlength="10" value="' . $height . '"></td></tr>';
+        return "text";
     }
 
     /**
      * Обрабатывает значение поля перед сохранением в базу данных.
-     * Сериализует массив ['title' => '...', 'html' => '...'] в JSON-строку.
-     * Метод должен быть статическим.
-     *
-     * @param array $userField Описание пользовательского поля.
-     * @param mixed $value     Значение поля (для этого типа поля, это значение текстового input для title).
-     * @return string          JSON-строка или пустая строка для сохранения в БД.
+     * Преобразует массив ['key' => '...', 'value' => '...'] в JSON-строку.
+     * 
+     * @param array $arUserField Массив с описанием пользовательского поля.
+     * @param mixed $value Значение поля, пришедшее из формы (ожидается массив ['key' => '...', 'value' => '...']).
+     * @return string JSON-строка или пустая строка для сохранения в БД.
      */
-    public static function onBeforeSave(array $userField, $value): string
+    public static function OnBeforeSave($arUserField, $value)
     {
-        $titleValue = is_string($value) ? trim($value) : '';
-        // Значение HTML-редактора приходит в отдельном $_REQUEST переменной.
-        $htmlValue = $_REQUEST[$userField['FIELD_NAME'] . '_html'] ?? '';
+        if (is_array($value) && (isset($value['key']) || isset($value['value']))) {
+            $filteredValue = [
+                'key'   => trim((string)($value['key'] ?? '')),
+                'value' => trim((string)($value['value'] ?? ''))
+            ];
 
-        // Если оба поля (заголовок и HTML) пустые, сохраняем пустую строку.
-        if (empty($titleValue) && empty($htmlValue)) {
-            return '';
+            if (empty($filteredValue['key']) && empty($filteredValue['value'])) {
+                return '';
+            }
+
+            return json_encode($filteredValue, JSON_UNESCAPED_UNICODE);
         }
 
-        $dataToSave = [
-            'title' => $titleValue,
-            'html' => $htmlValue,
-        ];
-
-        // Кодируем данные в JSON.
-        return json_encode($dataToSave, JSON_UNESCAPED_UNICODE);
+        return '';
     }
 
     /**
      * Обрабатывает значение поля после извлечения из базы данных.
-     * Десериализует JSON-строку (или PHP-сериализованные данные для совместимости)
-     * обратно в PHP-массив ['title' => '...', 'html' => '...'].
-     * Метод должен быть статическим.
+     * Преобразует JSON-строку (или PHP-сериализованный массив из старых данных) обратно в PHP-массив
+     * ['key' => '...', 'value' => '...'].
      *
-     * @param array $userField Описание пользовательского поля.
-     * @param array $fetched   Массив с данными, извлеченными из БД, включая 'VALUE' и 'VALUE_RAW'.
-     * @return array           Десериализованный массив ['title' => '...', 'html' => '...'] или пустой массив.
+     * @param array $userfield Массив с описанием пользовательского поля.
+     * @param array $fetched Массив с данными, извлеченными из БД, включая 'VALUE' и 'VALUE_RAW'.
+     * @return array PHP-массив ['key' => '...', 'value' => '...'] или пустой массив.
      */
-    public static function onAfterFetch(array $userField, array $fetched): array
+    public static function onAfterFetch($userfield, $fetched)
     {
-        $value = $fetched['VALUE'];
+        $value    = $fetched['VALUE'];
         $rawValue = $fetched['VALUE_RAW'];
 
-        // Попытка 1: Декодировать как JSON из $value
+        // Оптимизация: сначала проверяем JSON, так как это наиболее вероятный формат данных
         if (is_string($value) && !empty($value)) {
             $decoded = json_decode($value, true);
             if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
@@ -130,154 +101,96 @@ class HtmlBlockType extends TypeBase
             }
         }
 
-        // Попытка 2: Если $value уже является массивом (может быть результатом внутренней десериализации Bitrix из PHP-сериализации)
-        if (is_array($value) && (isset($value['title']) || isset($value['html']))) {
+        if (is_array($value) && (isset($value['key']) || isset($value['value']))) {
             return $value;
         }
 
-        // Попытка 3: Десериализовать из $rawValue как PHP-массив (для старых/некорректных данных)
         if (is_string($rawValue) && !empty($rawValue)) {
-            $unserialized = @unserialize(htmlspecialchars_decode($rawValue), ['allowed_classes' => false]);
-            if ($unserialized !== false && is_array($unserialized) && isset($unserialized['title'], $unserialized['html'])) {
-                return $unserialized;
+            // Безопасное десериализация с проверкой ошибок
+            $phpDecoded = @unserialize($rawValue);
+            if ($phpDecoded !== false && is_array($phpDecoded)) {
+                if (isset($phpDecoded['key']) || isset($phpDecoded['value'])) {
+                    return $phpDecoded;
+                }
+                $filtered = [];
+                foreach ($phpDecoded as $item) {
+                    if (is_array($item) && (isset($item['key']) || isset($item['value']))) {
+                        $filtered[] = $item;
+                    } elseif (is_string($item) && $item === 'Array') {
+                        $filtered[] = ['key' => '', 'value' => ''];
+                    }
+                }
+                if (!empty($filtered)) {
+                    return $filtered;
+                }
             }
         }
 
-        // Если ничего не удалось или данные некорректны, возвращаем пустой массив.
-        return ['title' => '', 'html' => ''];
-    }
-
-    /**
-     * Возвращает HTML для формы редактирования поля.
-     * Метод должен быть статическим.
-     *
-     * @param array $userField   Описание пользовательского поля.
-     * @param array $htmlControl Массив с элементами управления HTML, включая 'NAME' и 'VALUE'.
-     * @return string HTML-код поля.
-     */
-    public static function getEditFormHTML(array $userField, array $htmlControl): string
-    {
-        Loc::loadMessages(__FILE__); // Загружаем языковые фразы
-
-        // $htmlControl['VALUE'] содержит десериализованные данные из onAfterFetch
-        $data = $htmlControl['VALUE'];
-
-        // Инициализируем данные, если они отсутствуют или некорректны
-        if (!is_array($data) || (!isset($data['title']) && !isset($data['html']))) {
-            $data = ['title' => '', 'html' => ''];
-        }
-
-        // Если данные были отправлены через форму (при перегрузке страницы после ошибки),
-        // используем их для сохранения введенных значений.
-        if (isset($_REQUEST[$htmlControl['NAME']]) || isset($_REQUEST[$userField['FIELD_NAME'] . '_html'])) {
-            // Берем значение из request, если оно есть, иначе текущее из $data
-            $data['title'] = $_REQUEST[$htmlControl['NAME']] ?? $data['title'];
-            $data['html'] = $_REQUEST[$userField['FIELD_NAME'] . '_html'] ?? $data['html'];
-        }
-
-        $title = htmlspecialcharsbx($data['title']); // Экранируем заголовок для вывода
-        $htmlValue = $data['html']; // HTML-значение не экранируем, оно будет в редакторе
-
-        // Имена полей ввода
-        $titleControlName = $htmlControl['NAME'];
-        $htmlControlName = $userField['FIELD_NAME'] . '_html'; // Отдельное имя для HTML-редактора
-
-        // ID для HTML-редактора
-        $htmlEditorId = 'editor_' . HtmlFilter::encode($userField['FIELD_NAME'] . '_' . $userField['ID']);
-
-        ob_start();
-        ?>
-        <div class="qwelp-html-block-control" style="border: 1px solid #dce7ed; padding: 10px; border-radius: 4px; background: #f5f9f9;">
-            <div style="margin-bottom: 10px;">
-                <input type="text"
-                       name="<?= $titleControlName ?>"
-                       value="<?= $title ?>"
-                       placeholder="<?= Loc::getMessage('QWELP_HTML_BLOCK_TITLE_PLACEHOLDER') ?>"
-                       style="width: 98%;"
-                >
-            </div>
-            <div>
-                <?php
-                // Проверяем, что класс CHTMLEditor существует перед использованием
-                if (class_exists(CHTMLEditor::class)) {
-                    $LHE = new CHTMLEditor;
-                    $LHE->Show([
-                        'name' => $htmlControlName,
-                        'id' => $htmlEditorId,
-                        'width' => '100%',
-                        'height' => $userField['SETTINGS']['height'] ?? 200,
-                        'content' => $htmlValue,
-                        'bAllowPhp' => false,
-                        'toolbarConfig' => false, // <-- Отключаем стандартные конфигурации тулбара (скрывает сниппеты)
-                    ]);
-                } else {
-                    // Альтернатива, если HTML-редактор недоступен (например, в старых версиях Bitrix)
-                    echo '<textarea name="' . htmlspecialchars($htmlControlName) . '" style="width: 100%; height:' . ($userField['SETTINGS']['height'] ?? 200) . 'px;">' . htmlspecialchars($htmlValue) . '</textarea>';
-                }
-                ?>
-            </div>
-        </div>
-        <script>
-            // JS-код для сохранения содержимого HTML-редактора при отправке формы
-            (function() {
-                // Ищем форму по имени (например, form1 для элементов) или по классу/тегу
-                var form = document.forms['form1'] || document.querySelector('form[name^="form_"]');
-                if (form) {
-                    BX.bind(form, 'submit', function() {
-                        var editor = BX.admin.CEditor.Get('<?= \CUtil::JSEscape($htmlEditorId) ?>');
-                        if (editor && editor.IsShown()) { // Проверяем, что редактор показан
-                            editor.SaveContent(); // Сохраняем содержимое редактора в скрытое поле
-                        }
-                    });
-                }
-            })();
-        </script>
-        <?php
-        return ob_get_clean();
-    }
-
-    /**
-     * Возвращает HTML для отображения поля в списке административной части (например, список элементов инфоблока).
-     * @param array $userField   Описание пользовательского поля.
-     * @param array|null $htmlControl Массив с элементами управления HTML, включая 'VALUE'.
-     * @return string           HTML-код для отображения значения.
-     */
-    public static function getAdminListViewHTML(array $userField, ?array $htmlControl): string
-    {
-        $value = $htmlControl['VALUE'] ?? '';
-
-        // $value здесь уже будет десериализованным массивом ['title' => '...', 'html' => '...'] из onAfterFetch
-        if (is_array($value) && isset($value['title']) && !empty($value['title'])) {
-            return htmlspecialcharsbx($value['title']); // Отображаем только заголовок, экранированный
-        }
-
-        return ' '; // Неразрывный пробел, если значение пустое
-    }
-
-    /**
-     * Возвращает HTML для поля фильтра в административной части.
-     * Позволяет фильтровать по заголовку блока.
-     * @param array $userField   Описание пользовательского поля.
-     * @param array $htmlControl Массив с элементами управления HTML.
-     * @return string           HTML-код поля фильтра.
-     */
-    public static function getFilterHTML(array $userField, array $htmlControl): string
-    {
-        return '<input type="text" name="' . htmlspecialchars($htmlControl['NAME']) . '" size="20" value="">';
-    }
-
-    /**
-     * Проверяет значения поля перед сохранением.
-     * В данном примере валидация не реализована, метод возвращает пустой массив ошибок.
-     * @param array $userField Описание пользовательского поля.
-     * @param mixed $value     Значение поля.
-     * @return array           Массив сообщений об ошибках.
-     */
-    public static function checkFields(array $userField, $value): array
-    {
         return [];
     }
 
-    // Метод convertFromDB удален, т.к. onAfterFetch полностью покрывает логику десериализации,
-    // и его наличие могло вызывать дублирование или конфликты.
+    /**
+     * Генерирует HTML для отображения поля в форме редактирования.
+     * Создает текстовое поле для заголовка и HTML-редактор для содержимого.
+     *
+     * @param array $arUserField Массив с описанием пользовательского поля.
+     * @param array $arHtmlControl Массив с элементами управления HTML, включая 'NAME' и 'VALUE'.
+     * @return string HTML-код поля.
+     */
+    public static function GetEditFormHTML($arUserField, $arHtmlControl)
+    {
+        Loc::loadMessages(__FILE__);
+
+        $fieldName     = $arHtmlControl['NAME'];
+        $currentValues = $arHtmlControl['VALUE'];
+
+        // Подготовка значений
+        $key   = '';
+        $value = '';
+        if (is_array($currentValues)) {
+            $key   = htmlspecialchars($currentValues['key'] ?? '');
+            $value = $currentValues['value'] ?? '';
+        }
+
+        // Идентификатор и имя для редактора
+        $editorName = $fieldName . '[value]';
+        // Оптимизация: используем более эффективный способ генерации ID
+        // Генерируем уникальный ID для редактора, заменяем скобки на подчёркивания
+        $editorIdRaw = str_replace(['[', ']'], '_', $editorName);
+        $editorId = CUtil::JSEscape($editorIdRaw);
+
+        ob_start();
+        ?>
+        <div class="qwelp-key-value-wrapper">
+            <div class="qwelp-key-value-item">
+                <input
+                        type="text"
+                        name="<?= htmlspecialchars($fieldName) ?>[key]"
+                        value="<?= $key ?>"
+                        placeholder="<?= Loc::getMessage('QWELP_HTML_BLOCK_TITLE_PLACEHOLDER') ?>"
+                        class="adm-input"
+                />
+            </div>
+            <div class="qwelp-key-value-item">
+                <?php
+                // Создаем экземпляр HTML-редактора Bitrix и вызываем метод Show
+                $editor = new CHTMLEditor();
+                $editor->Show([
+                    'id'           => $editorId,
+                    'inputId'      => $editorId,
+                    'inputName'    => $editorName,
+                    'width'        => '100%',
+                    'height'       => '200px',
+                    'bAllowPhp'    => false,
+                    'bResizable'   => true,
+                    'toolbarConfig'=> 'standard',
+                    'content'      => $value,
+                ]);
+                ?>
+            </div>
+        </div>
+        <?php
+        $html = ob_get_clean();
+        return $html;
+    }
 }

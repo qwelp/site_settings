@@ -208,29 +208,20 @@ class qwelp_site_settings extends CModule
     {
         $eventManager = EventManager::getInstance();
 
-        // [FIXED] Регистрируем ДВА обработчика для ОДНОГО события
         $eventManager->registerEventHandler(
             'iblock',
             'OnIBlockPropertyBuildList',
             $this->MODULE_ID,
-            '\Qwelp\SiteSettings\EventHandler',
-            'onIBlockPropertyBuildListValues' // Метод для первого свойства
-        );
-        $eventManager->registerEventHandler(
-            'iblock',
-            'OnIBlockPropertyBuildList',
-            $this->MODULE_ID,
-            '\Qwelp\SiteSettings\EventHandler',
-            'onIBlockPropertyBuildListKeyValue' // Метод для второго свойства
+            '\Qwelp\SiteSettings\Property\ValuesPropertyType',
+            'getUserTypeDescription'
         );
 
-        // Регистрация для UserType остается прежней
         $eventManager->registerEventHandler(
-            'main',
-            'OnUserTypeBuildList',
+            'iblock',
+            'OnIBlockPropertyBuildList',
             $this->MODULE_ID,
-            '\Qwelp\SiteSettings\EventHandler',
-            'onUserTypeBuildList'
+            '\Qwelp\SiteSettings\Property\KeyValuePropertyType',
+            'getUserTypeDescription'
         );
 
         $eventManager->registerEventHandler(
@@ -259,28 +250,20 @@ class qwelp_site_settings extends CModule
     {
         $eventManager = EventManager::getInstance();
 
-        // [FIXED] Удаляем ДВА обработчика
-        $eventManager->unRegisterEventHandler(
+        $eventManager->removeEventHandler(
             'iblock',
             'OnIBlockPropertyBuildList',
             $this->MODULE_ID,
-            '\Qwelp\SiteSettings\EventHandler',
-            'onIBlockPropertyBuildListValues'
-        );
-        $eventManager->unRegisterEventHandler(
-            'iblock',
-            'OnIBlockPropertyBuildList',
-            $this->MODULE_ID,
-            '\Qwelp\SiteSettings\EventHandler',
-            'onIBlockPropertyBuildListKeyValue'
+            '\Qwelp\SiteSettings\Property\ValuesPropertyType',
+            'getUserTypeDescription'
         );
 
-        $eventManager->unRegisterEventHandler(
-            'main',
-            'OnUserTypeBuildList',
+        $eventManager->removeEventHandler(
+            'iblock',
+            'OnIBlockPropertyBuildList',
             $this->MODULE_ID,
-            '\Qwelp\SiteSettings\EventHandler',
-            'onUserTypeBuildList'
+            '\Qwelp\SiteSettings\Property\KeyValuePropertyType',
+            'getUserTypeDescription'
         );
 
         $eventManager->removeEventHandler(
@@ -288,7 +271,7 @@ class qwelp_site_settings extends CModule
             'OnUserTypeBuildList',
             $this->MODULE_ID,
             '\Qwelp\SiteSettings\UserType\KeyValueUserType', // Class name as string
-            'GetUserTypeDescription' // Method name as string
+            'GetUserTypeDescription'
         );
 
         $eventManager->removeEventHandler(
