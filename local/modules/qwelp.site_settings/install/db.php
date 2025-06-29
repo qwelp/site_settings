@@ -392,7 +392,7 @@ function InstallDB(): bool
                 'CODE' => 'TECH_DATA',
                 'PROPERTY_TYPE' => 'S',
                 'USER_TYPE' => \Qwelp\SiteSettings\Property\KeyValuePropertyType::USER_TYPE,
-                'MULTIPLE' => 'N',
+                'MULTIPLE' => 'Y',
                 'IS_REQUIRED' => 'N',
                 'HINT' => 'Сериализованный массив пар ключ-значение'
             ],

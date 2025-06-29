@@ -9,7 +9,6 @@
 namespace Qwelp\SiteSettings\Property;
 
 use Bitrix\Main\Localization\Loc;
-use Bitrix\Main\Page\Asset;
 use Bitrix\Main\Web\Json;
 
 Loc::loadMessages(__FILE__);
@@ -31,83 +30,125 @@ class KeyValuePropertyType
         ];
     }
 
-    public static function getPropertyFieldHtml($arProperty, $value, $strHTMLControlName): string
+    /**
+     * Генерирует HTML для поля редактирования свойства
+     */
+    public static function getPropertyFieldHtml(array $arProperty, array $value, array $strHTMLControlName): string
     {
-        $moduleId = 'qwelp.site_settings';
-        Asset::getInstance()->addJs("/bitrix/js/{$moduleId}/key_value_control.js");
-        Asset::getInstance()->addCss("/bitrix/css/{$moduleId}/key_value_control.css");
+        $fieldName = $strHTMLControlName['VALUE'];
+        $currentValues = $value['VALUE'] ?? '';
 
-        echo '<script>
-            window.KEY_VALUE_CONTROL_MESSAGES = window.KEY_VALUE_CONTROL_MESSAGES || {
-                KEY: "' . \CUtil::JSEscape(Loc::getMessage('QWELP_KEY_VALUE_PROPERTY_KEY')) . '",
-                VALUE: "' . \CUtil::JSEscape(Loc::getMessage('QWELP_KEY_VALUE_PROPERTY_VALUE')) . '",
-                DELETE: "' . \CUtil::JSEscape(Loc::getMessage('QWELP_KEY_VALUE_PROPERTY_DELETE')) . '",
-                ADD: "' . \CUtil::JSEscape(Loc::getMessage('QWELP_KEY_VALUE_PROPERTY_ADD')) . '"
-            };
-        </script>';
+        // Парсим текущее значение
+        $data = self::parseValue($currentValues);
 
-        $controlName = htmlspecialcharsbx($strHTMLControlName['VALUE']);
-        $items = is_array($value['VALUE']) ? $value['VALUE'] : [];
-
-        $html = '<div class="key-value-property" data-control-name="' . $controlName . '">';
-        $html .= '<div class="key-value-list">';
-
-        if (empty($items)) {
-            $items[] = ['key' => '', 'value' => ''];
-        }
-
-        foreach ($items as $item) {
-            $key = htmlspecialcharsbx($item['key'] ?? '');
-            $val = htmlspecialcharsbx($item['value'] ?? '');
-            $html .= '<div class="key-value-item">';
-            $html .= '<input type="text" class="key-value-input key-value-key" placeholder="' . Loc::getMessage('QWELP_KEY_VALUE_PROPERTY_KEY') . '" value="' . $key . '">';
-            $html .= '<input type="text" class="key-value-input key-value-value" placeholder="' . Loc::getMessage('QWELP_KEY_VALUE_PROPERTY_VALUE') . '" value="' . $val . '">';
-            $html .= '<button type="button" class="key-value-delete-row" title="' . Loc::getMessage('QWELP_KEY_VALUE_PROPERTY_DELETE') . '">×</button>';
-            $html .= '</div>';
-        }
-
-        $html .= '</div>';
-        $html .= '<input type="button" class="key-value-add-row" value="' . Loc::getMessage('QWELP_KEY_VALUE_PROPERTY_ADD') . '">';
-        $html .= '<input type="hidden" name="' . $controlName . '" value="' . htmlspecialcharsbx(serialize($value['VALUE'])) . '">';
-        $html .= '</div>';
-
+        ob_start();
+        ?>
+        <div class="qwelp-key-value-wrapper">
+            <div class="qwelp-key-value-item" style="display: flex; gap: 10px; align-items: center;">
+                <?php
+                $key = htmlspecialchars($data['key'] ?? '');
+                $val = htmlspecialchars($data['value'] ?? '');
+                ?>
+                <input type="text"
+                       name="<?= htmlspecialchars($fieldName) ?>[key]"
+                       value="<?= $key ?>"
+                       placeholder="<?= Loc::getMessage('QWELP_KEY_VALUE_PLACEHOLDER_KEY') ?: 'Ключ' ?>"
+                       class="adm-input"
+                       style="width: 200px;" />
+                <input type="text"
+                       name="<?= htmlspecialchars($fieldName) ?>[value]"
+                       value="<?= $val ?>"
+                       placeholder="<?= Loc::getMessage('QWELP_KEY_VALUE_PLACEHOLDER_VALUE') ?: 'Значение' ?>"
+                       class="adm-input"
+                       style="width: 200px;" />
+            </div>
+        </div>
+        <?php
+        $html = ob_get_clean();
         return $html;
     }
 
-    public static function convertToDB($arProperty, $value)
+    /**
+     * Конвертирует значение для сохранения в БД
+     */
+    public static function convertToDB(array $arProperty, array $value): array
     {
-        if (isset($value['VALUE']) && is_string($value['VALUE'])) {
-            try {
-                $data = Json::decode($value['VALUE']);
-                $value['VALUE'] = serialize($data);
-            } catch (\Exception $e) {
-                $value['VALUE'] = serialize([]);
+        $result = $value;
+
+        // Если пришел массив с ключами key и value
+        if (is_array($value['VALUE']) && isset($value['VALUE']['key'], $value['VALUE']['value'])) {
+            $keyValue = trim($value['VALUE']['key']);
+            $valueValue = trim($value['VALUE']['value']);
+
+            // Если оба поля пустые, сохраняем пустое значение
+            if ($keyValue === '' && $valueValue === '') {
+                $result['VALUE'] = '';
+            } else {
+                // Иначе сохраняем как JSON
+                $result['VALUE'] = Json::encode([
+                    'key' => $keyValue,
+                    'value' => $valueValue
+                ]);
             }
-        } else {
-            $value['VALUE'] = serialize([]);
         }
+
+        return $result;
+    }
+
+    /**
+     * Конвертирует значение при получении из БД
+     */
+    public static function convertFromDB(array $arProperty, array $value): array
+    {
         return $value;
     }
 
-    public static function convertFromDB($arProperty, $value)
+    /**
+     * Отображение в списке администратора
+     */
+    public static function getAdminListViewHTML(array $arProperty, array $value): string
     {
-        if (!empty($value['VALUE']) && is_string($value['VALUE'])) {
-            $unserialized = @unserialize($value['VALUE']);
-            $value['VALUE'] = ($unserialized !== false) ? $unserialized : [];
-        } else {
-            $value['VALUE'] = [];
+        if (empty($value['VALUE'])) {
+            return '';
         }
-        return $value;
+
+        $data = self::parseValue($value['VALUE']);
+
+        $key = htmlspecialchars($data['key'] ?? '');
+        $val = htmlspecialchars($data['value'] ?? '');
+
+        // Если оба поля пустые, не показываем ничего
+        if (trim($key) === '' && trim($val) === '') {
+            return '';
+        }
+
+        return '<strong>' . $key . ':</strong> ' . $val;
     }
 
-    public static function getAdminListViewHTML($arProperty, $value, $strHTMLControlName): string
+    /**
+     * Парсит значение в массив
+     */
+    private static function parseValue(string $value): array
     {
-        if (!empty($value['VALUE'])) {
-            $data = is_array($value['VALUE']) ? $value['VALUE'] : unserialize($value['VALUE']);
-            if (is_array($data) && count($data) > 0) {
-                return Loc::getMessage('QWELP_KEY_VALUE_PROPERTY_COUNT') . ': ' . count($data);
-            }
+        if (empty($value)) {
+            return ['key' => '', 'value' => ''];
         }
-        return '';
+
+        // Пытаемся распарсить как JSON
+        if (self::isJson($value)) {
+            $decoded = Json::decode($value);
+            return is_array($decoded) ? $decoded : ['key' => '', 'value' => ''];
+        }
+
+        return ['key' => '', 'value' => ''];
+    }
+
+    /**
+     * Проверяет, является ли строка валидным JSON
+     */
+    private static function isJson(string $string): bool
+    {
+        json_decode($string);
+        return json_last_error() === JSON_ERROR_NONE;
     }
 }
