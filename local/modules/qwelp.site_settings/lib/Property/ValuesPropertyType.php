@@ -7,10 +7,10 @@
 
 namespace Qwelp\SiteSettings\Property;
 
+use Bitrix\Main\Application;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\Page\Asset;
 use CFile;
-use Bitrix\Main\Diag\Debug;
 
 Loc::loadMessages(__FILE__);
 
@@ -49,7 +49,9 @@ class ValuesPropertyType
         global $APPLICATION;
         $moduleId = 'qwelp.site_settings';
 
-        // Debug::writeToFile($value, '1. RAW $value FROM DB', DEBUG_FILE_NAME);
+        // Получаем код элемента инфоблока из контекста
+        $elementCode = self::getElementCodeFromContext();
+        $apiCodeHtml = self::generateApiCodeBlock($elementCode);
 
         echo '<script>
             var OPTIONS_CONTROL_MESSAGES = {
@@ -64,6 +66,36 @@ class ValuesPropertyType
                 FETCH_ERROR: "' . \CUtil::JSEscape(Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_FETCH_ERROR')) . '",
                 DELETE_ERROR: "' . \CUtil::JSEscape(Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_DELETE_ERROR')) . '"
             };
+            
+            function copyApiCode(button) {
+                const codeElement = button.parentElement.querySelector("code");
+                const text = codeElement.textContent;
+                
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(text).then(function() {
+                        button.textContent = "Скопировано!";
+                        setTimeout(function() {
+                            button.textContent = "Копировать";
+                        }, 2000);
+                    });
+                } else {
+                    // Fallback для старых браузеров
+                    const textArea = document.createElement("textarea");
+                    textArea.value = text;
+                    textArea.style.position = "fixed";
+                    textArea.style.left = "-999999px";
+                    textArea.style.top = "-999999px";
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    document.execCommand("copy");
+                    textArea.remove();
+                    button.textContent = "Скопировано!";
+                    setTimeout(function() {
+                        button.textContent = "Копировать";
+                    }, 2000);
+                }
+            }
         </script>';
 
         Asset::getInstance()->addJs("/bitrix/js/{$moduleId}/options_control.js");
@@ -83,8 +115,6 @@ class ValuesPropertyType
         if (!is_array($data)) {
             $data = [];
         }
-
-        // Debug::writeToFile($data, '2. $data AFTER json_decode', DEBUG_FILE_NAME);
 
         $showPicker = (bool)($data['color_show_picker'] ?? false);
 
@@ -134,7 +164,8 @@ class ValuesPropertyType
 
         $rows = $data[$mode] ?? [];
 
-        $html = '<div class="settings-form"'
+        $html = $apiCodeHtml
+            . '<div class="settings-form"'
             . ' data-control-value="' . $fieldValue . '"'
             . ' data-control-mode="' . $fieldMode . '"'
             . ' data-initial-json=\'' . htmlspecialcharsbx($jsonWithUrls) . '\'>'
@@ -142,6 +173,59 @@ class ValuesPropertyType
             . '</div>'
             . '<input type="hidden" name="' . $fieldValue . '" value="">'
             . '<input type="hidden" name="' . $fieldMode .  '" value="' . htmlspecialcharsbx($mode) . '">';
+
+        return $html;
+    }
+
+    /**
+     * Получает код элемента инфоблока из контекста администрирования
+     *
+     * @return string|null Код элемента или null если элемент не найден или нет ID
+     */
+    private static function getElementCodeFromContext(): ?string
+    {
+        // Используем методы Битрикса для получения GET параметров
+        $request = Application::getInstance()->getContext()->getRequest();
+        $elementId = (int)$request->get('ID');
+
+        if ($elementId > 0) {
+            // Загружаем модуль iblock если не загружен
+            if (!\Bitrix\Main\Loader::includeModule('iblock')) {
+                return null;
+            }
+
+            // Получаем элемент по ID
+            $element = \CIBlockElement::GetByID($elementId)->GetNext();
+            if ($element && !empty($element['CODE'])) {
+                return $element['CODE'];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Генерирует блок с API кодом для получения значения свойства
+     *
+     * @param string|null $elementCode Код элемента инфоблока
+     * @return string HTML блок с API кодом
+     */
+    private static function generateApiCodeBlock(?string $elementCode): string
+    {
+        // Если код элемента не найден, не показываем блок с API
+        if (!$elementCode) {
+            return '';
+        }
+
+        $apiCode = "\\Qwelp\\SiteSettings\\OptionsManager::get('{$elementCode}', null, 's1')";
+
+        $html = '<div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px;">';
+        $html .= '<h4 style="margin: 0 0 10px 0; color: #495057; font-size: 14px;">API метод для получения значения:</h4>';
+        $html .= '<div style="display: flex; align-items: center; gap: 10px;">';
+        $html .= '<code style="background: #e9ecef; padding: 8px 12px; border-radius: 3px; font-family: monospace; flex: 1; user-select: all;">' . htmlspecialchars($apiCode) . '</code>';
+        $html .= '<button type="button" onclick="copyApiCode(this)" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 3px; cursor: pointer; font-size: 12px; white-space: nowrap;">Копировать</button>';
+        $html .= '</div>';
+        $html .= '</div>';
 
         return $html;
     }
