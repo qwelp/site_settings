@@ -202,4 +202,87 @@ class OptionsManager
 
         return $siteStorageDir . 'settings.json';
     }
+
+
+    /**
+     * Получает технические данные элемента по его коду.
+     * Возвращает ассоциативный массив, где ключи - это значения 'key', а значения - это значения 'value'.
+     *
+     * @param string $elementCode Код элемента инфоблока.
+     * @return array Ассоциативный массив значений из свойства TECH_DATA.
+     *
+     * @example
+     * // Получить все технические данные элемента
+     * $techDataArray = \Qwelp\SiteSettings\OptionsManager::getTechData('api-settings');
+     * // Результат: [
+     * //   'api_url' => 'https://api.example.com',
+     * //   'api_token' => 'secret_token_123'
+     * // ]
+     */
+    public static function getTechData(string $elementCode): array
+    {
+        if (!\Bitrix\Main\Loader::includeModule('iblock')) {
+            return [];
+        }
+
+        // Находим инфоблок настроек
+        $iblockRes = \CIBlock::GetList(
+            [],
+            ['CODE' => 'site_settings', 'TYPE' => 'site_settings', 'CHECK_PERMISSIONS' => 'N']
+        );
+
+        if (!$iblock = $iblockRes->Fetch()) {
+            return [];
+        }
+
+        $iblockId = (int)$iblock['ID'];
+
+        // Ищем элемент по коду
+        $elementRes = \CIBlockElement::GetList(
+            [],
+            [
+                'IBLOCK_ID' => $iblockId,
+                'CODE' => $elementCode,
+                'ACTIVE' => 'Y'
+            ],
+            false,
+            false,
+            ['ID', 'CODE']
+        );
+
+        if ($element = $elementRes->Fetch()) {
+            // Получаем все значения множественного свойства TECH_DATA
+            $properties = \CIBlockElement::GetProperty(
+                $iblockId,
+                $element['ID'],
+                [],
+                ['CODE' => 'TECH_DATA']
+            );
+
+            $result = [];
+            while ($property = $properties->Fetch()) {
+                $techDataValue = $property['VALUE'];
+
+                // Если значение не пустое, пытаемся распарсить JSON
+                if (!empty($techDataValue)) {
+                    $decoded = json_decode($techDataValue, true);
+
+                    // Если это JSON с ключами 'key' и 'value', добавляем в результат
+                    if (is_array($decoded) && isset($decoded['key'], $decoded['value'])) {
+                        $key = $decoded['key'];
+                        $value = $decoded['value'];
+
+                        // Добавляем в ассоциативный массив, используя 'key' как ключ массива
+                        if (!empty($key)) {
+                            $result[$key] = $value;
+                        }
+                    }
+                }
+            }
+
+            return $result;
+        }
+
+        return [];
+    }
 }
