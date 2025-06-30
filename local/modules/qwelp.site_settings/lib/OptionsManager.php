@@ -26,6 +26,10 @@ class OptionsManager
      */
     protected static array $optionsCache = [];
 
+    private const IBLOCK_CODE = 'site_settings';
+    private const IBLOCK_TYPE = 'site_settings';
+    protected static ?int $iblockId = null;
+
     /**
      * Получает значение конкретной настройки.
      * Является основным методом для получения простых значений.
@@ -203,7 +207,6 @@ class OptionsManager
         return $siteStorageDir . 'settings.json';
     }
 
-
     /**
      * Получает технические данные элемента по его коду.
      * Возвращает ассоциативный массив, где ключи - это значения 'key', а значения - это значения 'value'.
@@ -284,5 +287,117 @@ class OptionsManager
         }
 
         return [];
+    }
+
+    /**
+     * Получает ID инфоблока настроек
+     * @return int|null
+     */
+    protected static function getIblockId(): ?int
+    {
+        if (self::$iblockId !== null) {
+            return self::$iblockId;
+        }
+
+        if (!\Bitrix\Main\Loader::includeModule('iblock')) {
+            return null;
+        }
+
+        $iblockRes = \CIBlock::GetList(
+            [],
+            ['CODE' => self::IBLOCK_CODE, 'TYPE' => self::IBLOCK_TYPE, 'CHECK_PERMISSIONS' => 'N']
+        );
+
+        if ($iblock = $iblockRes->Fetch()) {
+            self::$iblockId = (int)$iblock['ID'];
+            return self::$iblockId;
+        }
+
+        return null;
+    }
+
+    /**
+     * Получает технические данные раздела по его коду.
+     * Возвращает ассоциативный массив, где ключи - это значения 'key', а значения - это значения 'value'.
+     *
+     * @param string $sectionCode Код раздела инфоблока.
+     * @return array Ассоциативный массив значений из пользовательского поля UF_SECTIONS_KEY_VALUE.
+     *
+     * @example
+     * // Получить все технические данные раздела
+     * $techDataArray = \Qwelp\SiteSettings\OptionsManager::getSectionTechData('some-section');
+     * // Результат: [
+     * //   'api_url' => 'https://api.example.com',
+     * //   'api_token' => 'secret_token_123'
+     * // ]
+     */
+    public static function getSectionTechData(string $sectionCode): array
+    {
+        if (!\Bitrix\Main\Loader::includeModule('iblock')) {
+            return [];
+        }
+
+        // Находим инфоблок настроек
+        $iblockId = self::getIblockId();
+        if (!$iblockId) {
+            return [];
+        }
+
+        // Получаем раздел по коду с пользовательскими полями
+        $sectionRes = \CIBlockSection::GetList(
+            [],
+            [
+                'IBLOCK_ID' => $iblockId,
+                'CODE' => $sectionCode,
+                'ACTIVE' => 'Y'
+            ],
+            false,
+            ['ID', 'CODE', 'UF_*'] // Получаем все пользовательские поля
+        );
+
+        $section = $sectionRes->GetNext();
+        if (!$section) {
+            return [];
+        }
+
+        $result = [];
+
+        // Проходим по всем пользовательским полям раздела
+        foreach ($section as $fieldName => $fieldValue) {
+            // Ищем поля типа UF_SECTIONS_KEY_VALUE или другие KEY_VALUE поля
+            if (strpos($fieldName, 'UF_') === 0 && strpos($fieldName, 'KEY_VALUE') !== false) {
+                if (is_array($fieldValue)) {
+                    foreach ($fieldValue as $item) {
+                        // Проверяем, что элемент - это массив с ключами key и value
+                        if (is_array($item) && isset($item['key']) && isset($item['value'])) {
+                            $key = trim((string)$item['key']);
+                            $value = trim((string)$item['value']);
+
+                            // Добавляем только если ключ не пустой
+                            if (!empty($key)) {
+                                $result[$key] = $value;
+                            }
+                        }
+                        // Если элемент - строка, пытаемся декодировать как JSON
+                        elseif (is_string($item) && !empty($item)) {
+                            $decoded = json_decode($item, true);
+                            if (json_last_error() === JSON_ERROR_NONE &&
+                                is_array($decoded) &&
+                                isset($decoded['key']) &&
+                                isset($decoded['value'])) {
+                                $key = trim((string)$decoded['key']);
+                                $value = trim((string)$decoded['value']);
+
+                                if (!empty($key)) {
+                                    $result[$key] = $value;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return $result;
     }
 }
