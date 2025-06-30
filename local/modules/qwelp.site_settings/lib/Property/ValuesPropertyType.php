@@ -66,16 +66,16 @@ class ValuesPropertyType
                 FETCH_ERROR: "' . \CUtil::JSEscape(Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_FETCH_ERROR')) . '",
                 DELETE_ERROR: "' . \CUtil::JSEscape(Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_DELETE_ERROR')) . '"
             };
-            
+
             function copyApiCode(button) {
                 const codeElement = button.parentElement.querySelector("code");
                 const text = codeElement.textContent;
-                
+
                 if (navigator.clipboard && window.isSecureContext) {
                     navigator.clipboard.writeText(text).then(function() {
-                        button.textContent = "Скопировано!";
+                        button.textContent = "' . \CUtil::JSEscape(Loc::getMessage('QWELP_SITE_SETTINGS_COPIED_MESSAGE')) . '";
                         setTimeout(function() {
-                            button.textContent = "Копировать";
+                            button.textContent = "' . \CUtil::JSEscape(Loc::getMessage('QWELP_SITE_SETTINGS_COPY_BUTTON')) . '";
                         }, 2000);
                     });
                 } else {
@@ -90,9 +90,9 @@ class ValuesPropertyType
                     textArea.select();
                     document.execCommand("copy");
                     textArea.remove();
-                    button.textContent = "Скопировано!";
+                    button.textContent = "' . \CUtil::JSEscape(Loc::getMessage('QWELP_SITE_SETTINGS_COPIED_MESSAGE')) . '";
                     setTimeout(function() {
-                        button.textContent = "Копировать";
+                        button.textContent = "' . \CUtil::JSEscape(Loc::getMessage('QWELP_SITE_SETTINGS_COPY_BUTTON')) . '";
                     }, 2000);
                 }
             }
@@ -220,10 +220,10 @@ class ValuesPropertyType
         $apiCode = "\\Qwelp\\SiteSettings\\OptionsManager::get('{$elementCode}', null, 's1')";
 
         $html = '<div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px;">';
-        $html .= '<h4 style="margin: 0 0 10px 0; color: #495057; font-size: 14px;">API метод для получения значения:</h4>';
+        $html .= '<h4 style="margin: 0 0 10px 0; color: #495057; font-size: 14px;">' . Loc::getMessage('QWELP_SITE_SETTINGS_API_METHOD_TITLE') . '</h4>';
         $html .= '<div style="display: flex; align-items: center; gap: 10px;">';
         $html .= '<code style="background: #e9ecef; padding: 8px 12px; border-radius: 3px; font-family: monospace; flex: 1; user-select: all;">' . htmlspecialchars($apiCode) . '</code>';
-        $html .= '<button type="button" onclick="copyApiCode(this)" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 3px; cursor: pointer; font-size: 12px; white-space: nowrap;">Копировать</button>';
+        $html .= '<button type="button" onclick="copyApiCode(this)" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 3px; cursor: pointer; font-size: 12px; white-space: nowrap;">' . Loc::getMessage('QWELP_SITE_SETTINGS_COPY_BUTTON') . '</button>';
         $html .= '</div>';
         $html .= '</div>';
 
@@ -232,7 +232,14 @@ class ValuesPropertyType
 
     private static function generateHtmlForm(array $rows, array $strHTMLControlName, string $mode, bool $showPicker): string
     {
-        $arTypes = ['checkbox' => 'Checkbox', 'radio' => 'Radio', 'radioImage' => 'Radio Image', 'pathFile' => 'Path to File', 'select' => 'Select', 'color' => 'Color'];
+        $arTypes = [
+            'checkbox' => Loc::getMessage('QWELP_SITE_SETTINGS_TYPE_CHECKBOX'),
+            'radio' => Loc::getMessage('QWELP_SITE_SETTINGS_TYPE_RADIO'),
+            'radioImage' => Loc::getMessage('QWELP_SITE_SETTINGS_TYPE_RADIO_IMAGE'),
+            'pathFile' => Loc::getMessage('QWELP_SITE_SETTINGS_TYPE_PATH_FILE'),
+            'select' => Loc::getMessage('QWELP_SITE_SETTINGS_TYPE_SELECT'),
+            'color' => Loc::getMessage('QWELP_SITE_SETTINGS_TYPE_COLOR')
+        ];
         $uniqueId = htmlspecialcharsbx($strHTMLControlName['VALUE']);
         $html = '';
 
@@ -251,7 +258,7 @@ class ValuesPropertyType
         $checked = $showPicker ? 'checked' : '';
         $html .= '<div class="settings-form__color-option" ' . $pickerStyle . '>';
         $html .= '<input type="checkbox" id="color-picker-toggle-'.$uniqueId.'" class="settings-form__color-picker-toggle" '.$checked.'>';
-        $html .= '<label for="color-picker-toggle-'.$uniqueId.'">'.(Loc::getMessage('QWELP_SITE_SETTINGS_SHOW_COLOR_PICKER') ?: 'Показывать выбор цвета').'</label></div>';
+        $html .= '<label for="color-picker-toggle-'.$uniqueId.'">'.Loc::getMessage('QWELP_SITE_SETTINGS_SHOW_COLOR_PICKER').'</label></div>';
         $html .= '<div class="settings-form__elements">';
 
         foreach ($rows as $item) {

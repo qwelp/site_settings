@@ -23,7 +23,7 @@ class KeyValuePropertyType
         return [
             'PROPERTY_TYPE' => 'S',
             'USER_TYPE' => self::USER_TYPE,
-            'DESCRIPTION' => Loc::getMessage('QWELP_KEY_VALUE_PROPERTY_DESC') ?: 'Ключ - Значение (сериализовано)',
+            'DESCRIPTION' => Loc::getMessage('QWELP_KEY_VALUE_PROPERTY_DESC'),
             'GetPropertyFieldHtml' => [__CLASS__, 'getPropertyFieldHtml'],
             'ConvertToDB' => [__CLASS__, 'convertToDB'],
             'ConvertFromDB' => [__CLASS__, 'convertFromDB'],
@@ -61,12 +61,12 @@ class KeyValuePropertyType
                     function copyApiCode(button) {
                         const codeElement = button.parentElement.querySelector("code");
                         const text = codeElement.textContent;
-                        
+
                         if (navigator.clipboard && window.isSecureContext) {
                             navigator.clipboard.writeText(text).then(function() {
-                                button.textContent = "Скопировано!";
+                                button.textContent = "' . Loc::getMessage('QWELP_KEY_VALUE_COPIED') . '";
                                 setTimeout(function() {
-                                    button.textContent = "Копировать";
+                                    button.textContent = "' . Loc::getMessage('QWELP_KEY_VALUE_COPY') . '";
                                 }, 2000);
                             });
                         } else {
@@ -81,9 +81,9 @@ class KeyValuePropertyType
                             textArea.select();
                             document.execCommand("copy");
                             textArea.remove();
-                            button.textContent = "Скопировано!";
+                            button.textContent = "' . Loc::getMessage('QWELP_KEY_VALUE_COPIED') . '";
                             setTimeout(function() {
-                                button.textContent = "Копировать";
+                                button.textContent = "' . Loc::getMessage('QWELP_KEY_VALUE_COPY') . '";
                             }, 2000);
                         }
                     }
@@ -104,13 +104,13 @@ class KeyValuePropertyType
                 <input type="text"
                        name="<?= htmlspecialchars($fieldName) ?>[key]"
                        value="<?= $key ?>"
-                       placeholder="<?= Loc::getMessage('QWELP_KEY_VALUE_PLACEHOLDER_KEY') ?: 'Ключ' ?>"
+                       placeholder="<?= Loc::getMessage('QWELP_KEY_VALUE_PLACEHOLDER_KEY') ?>"
                        class="adm-input"
                        style="width: 200px;" />
                 <input type="text"
                        name="<?= htmlspecialchars($fieldName) ?>[value]"
                        value="<?= $val ?>"
-                       placeholder="<?= Loc::getMessage('QWELP_KEY_VALUE_PLACEHOLDER_VALUE') ?: 'Значение' ?>"
+                       placeholder="<?= Loc::getMessage('QWELP_KEY_VALUE_PLACEHOLDER_VALUE') ?>"
                        class="adm-input"
                        style="width: 200px;" />
             </div>
@@ -163,10 +163,10 @@ class KeyValuePropertyType
         $apiCode = "\\Qwelp\\SiteSettings\\OptionsManager::getTechData('{$elementCode}')";
 
         $html = '<div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px;">';
-        $html .= '<h4 style="margin: 0 0 10px 0; color: #495057; font-size: 14px;">API метод для получения технических данных:</h4>';
+        $html .= '<h4 style="margin: 0 0 10px 0; color: #495057; font-size: 14px;">' . Loc::getMessage('QWELP_KEY_VALUE_API_METHOD_TITLE') . '</h4>';
         $html .= '<div style="display: flex; align-items: center; gap: 10px;">';
         $html .= '<code style="background: #e9ecef; padding: 8px 12px; border-radius: 3px; font-family: monospace; flex: 1; user-select: all;">' . htmlspecialchars($apiCode) . '</code>';
-        $html .= '<button type="button" onclick="copyApiCode(this)" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 3px; cursor: pointer; font-size: 12px; white-space: nowrap;">Копировать</button>';
+        $html .= '<button type="button" onclick="copyApiCode(this)" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 3px; cursor: pointer; font-size: 12px; white-space: nowrap;">' . Loc::getMessage('QWELP_KEY_VALUE_COPY') . '</button>';
         $html .= '</div>';
         $html .= '</div>';
 

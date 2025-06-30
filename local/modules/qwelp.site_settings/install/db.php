@@ -134,8 +134,16 @@ function InstallDB(): bool
             'IN_RSS' => 'N',
             'SORT' => 500,
             'LANG' => [
-                'ru' => ['NAME' => 'Настройки сайта', 'SECTION_NAME' => 'Разделы', 'ELEMENT_NAME' => 'Настройки'],
-                'en' => ['NAME' => 'Site Settings', 'SECTION_NAME' => 'Sections', 'ELEMENT_NAME' => 'Settings'],
+                'ru' => [
+                    'NAME' => Loc::getMessage('QWELP_SITE_SETTINGS_IBLOCK_TYPE_NAME_RU'), 
+                    'SECTION_NAME' => Loc::getMessage('QWELP_SITE_SETTINGS_IBLOCK_TYPE_SECTION_NAME_RU'), 
+                    'ELEMENT_NAME' => Loc::getMessage('QWELP_SITE_SETTINGS_IBLOCK_TYPE_ELEMENT_NAME_RU')
+                ],
+                'en' => [
+                    'NAME' => Loc::getMessage('QWELP_SITE_SETTINGS_IBLOCK_TYPE_NAME_EN'), 
+                    'SECTION_NAME' => Loc::getMessage('QWELP_SITE_SETTINGS_IBLOCK_TYPE_SECTION_NAME_EN'), 
+                    'ELEMENT_NAME' => Loc::getMessage('QWELP_SITE_SETTINGS_IBLOCK_TYPE_ELEMENT_NAME_EN')
+                ],
             ],
         ];
         $obIblockType = new \CIBlockType();
@@ -152,14 +160,16 @@ function InstallDB(): bool
 
     if (!$dbIblock->Fetch()) {
         $sites = [];
-        $rsSites = \CSite::GetList('sort', 'asc');
+        $sort = 'sort';
+        $order = 'asc';
+        $rsSites = \CSite::GetList($sort, $order);
         while ($arSite = $rsSites->Fetch()) {
             $sites[] = $arSite['LID'];
         }
 
         $iblockFieldsMain = [
             'ACTIVE' => 'Y',
-            'NAME' => 'Настройки сайта',
+            'NAME' => Loc::getMessage('QWELP_SITE_SETTINGS_IBLOCK_NAME'),
             'CODE' => $iblockCode,
             'XML_ID' => $iblockXmlId,
             'IBLOCK_TYPE_ID' => $iblockType,
@@ -202,36 +212,66 @@ function InstallDB(): bool
                 'FIELD_NAME' => 'UF_ENABLE_DRAG_AND_DROP',
                 'XML_ID' => 'UF_ENABLE_DRAG_AND_DROP',
                 'SORT' => 500,
-                'HELP_MESSAGE' => ['ru' => 'Активирует функционал drag and drop для раздела.', 'en' => 'Activates drag and drop functionality.'],
-                'EDIT_FORM_LABEL' => ['ru' => 'Включить drag and drop', 'en' => 'Enable drag and drop'],
+                'HELP_MESSAGE' => [
+                    'ru' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_DRAG_DROP_HELP_RU'), 
+                    'en' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_DRAG_DROP_HELP_EN')
+                ],
+                'EDIT_FORM_LABEL' => [
+                    'ru' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_DRAG_DROP_NAME_RU'), 
+                    'en' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_DRAG_DROP_NAME_EN')
+                ],
             ],
             [
                 'FIELD_NAME' => 'UF_DETAIL_PROPERTY',
                 'XML_ID' => 'UF_DETAIL_PROPERTY',
                 'SORT' => 510,
-                'HELP_MESSAGE' => ['ru' => 'Дополнительная информация для раздела.', 'en' => 'Additional information for the section.'],
-                'EDIT_FORM_LABEL' => ['ru' => 'Детальное свойство', 'en' => 'Detail Property'],
+                'HELP_MESSAGE' => [
+                    'ru' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_DETAIL_PROPERTY_HELP_RU'), 
+                    'en' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_DETAIL_PROPERTY_HELP_EN')
+                ],
+                'EDIT_FORM_LABEL' => [
+                    'ru' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_DETAIL_PROPERTY_NAME_RU'), 
+                    'en' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_DETAIL_PROPERTY_NAME_EN')
+                ],
             ],
             [
                 'FIELD_NAME' => 'UF_COMMON_PROPERTY',
                 'XML_ID' => 'UF_COMMON_PROPERTY',
                 'SORT' => 520,
-                'HELP_MESSAGE' => ['ru' => 'Единое свойство для всех разделов.', 'en' => 'A common property for all sections.'],
-                'EDIT_FORM_LABEL' => ['ru' => 'Единое свойство', 'en' => 'Common Property'],
+                'HELP_MESSAGE' => [
+                    'ru' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_COMMON_PROPERTY_HELP_RU'), 
+                    'en' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_COMMON_PROPERTY_HELP_EN')
+                ],
+                'EDIT_FORM_LABEL' => [
+                    'ru' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_COMMON_PROPERTY_NAME_RU'), 
+                    'en' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_COMMON_PROPERTY_NAME_EN')
+                ],
             ],
             [
                 'FIELD_NAME' => 'UF_COLLAPSED_BLOCK',
                 'XML_ID' => 'UF_COLLAPSED_BLOCK',
                 'SORT' => 530,
-                'HELP_MESSAGE' => ['ru' => 'Позволяет скрывать содержимое раздела по умолчанию.', 'en' => 'Allows to hide the section content by default.'],
-                'EDIT_FORM_LABEL' => ['ru' => 'Свернутый блок', 'en' => 'Collapsed Block'],
+                'HELP_MESSAGE' => [
+                    'ru' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_COLLAPSED_BLOCK_HELP_RU'), 
+                    'en' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_COLLAPSED_BLOCK_HELP_EN')
+                ],
+                'EDIT_FORM_LABEL' => [
+                    'ru' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_COLLAPSED_BLOCK_NAME_RU'), 
+                    'en' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_COLLAPSED_BLOCK_NAME_EN')
+                ],
             ],
             [
                 'FIELD_NAME' => 'UF_HIDDEN_CHECKBOX',
                 'XML_ID' => 'UF_HIDDEN_CHECKBOX',
                 'SORT' => 535,
-                'HELP_MESSAGE' => ['ru' => 'Скрытое свойство с чекбоксом.', 'en' => 'Hidden property with a checkbox.'],
-                'EDIT_FORM_LABEL' => ['ru' => 'Скрытый чекбокс', 'en' => 'Hidden Checkbox'],
+                'HELP_MESSAGE' => [
+                    'ru' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_HIDDEN_CHECKBOX_HELP_RU'), 
+                    'en' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_HIDDEN_CHECKBOX_HELP_EN')
+                ],
+                'EDIT_FORM_LABEL' => [
+                    'ru' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_HIDDEN_CHECKBOX_NAME_RU'), 
+                    'en' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_HIDDEN_CHECKBOX_NAME_EN')
+                ],
             ]
         ];
         foreach ($ufFields as $uf) {
@@ -262,15 +302,27 @@ function InstallDB(): bool
                 'FIELD_NAME' => 'UF_HIDDEN_ELEMENTS_TITLE',
                 'XML_ID' => 'UF_HIDDEN_ELEMENTS_TITLE',
                 'SORT' => 540,
-                'HELP_MESSAGE' => ['ru' => 'Заголовок для группы скрытых элементов.', 'en' => 'Title for hidden elements group.'],
-                'EDIT_FORM_LABEL' => ['ru' => 'Название для спрятанных элементов', 'en' => 'Title for hidden elements'],
+                'HELP_MESSAGE' => [
+                    'ru' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_HIDDEN_ELEMENTS_TITLE_HELP_RU'), 
+                    'en' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_HIDDEN_ELEMENTS_TITLE_HELP_EN')
+                ],
+                'EDIT_FORM_LABEL' => [
+                    'ru' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_HIDDEN_ELEMENTS_TITLE_NAME_RU'), 
+                    'en' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_HIDDEN_ELEMENTS_TITLE_NAME_EN')
+                ],
             ],
             [
                 'FIELD_NAME' => 'UF_SECTION_TOOLTIP',
                 'XML_ID' => 'UF_SECTION_TOOLTIP',
                 'SORT' => 550,
-                'HELP_MESSAGE' => ['ru' => 'Текст подсказки, отображаемый рядом с заголовком раздела.', 'en' => 'Tooltip text displayed next to the section title.'],
-                'EDIT_FORM_LABEL' => ['ru' => 'Подсказка раздела', 'en' => 'Section Tooltip'],
+                'HELP_MESSAGE' => [
+                    'ru' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_SECTION_TOOLTIP_HELP_RU'), 
+                    'en' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_SECTION_TOOLTIP_HELP_EN')
+                ],
+                'EDIT_FORM_LABEL' => [
+                    'ru' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_SECTION_TOOLTIP_NAME_RU'), 
+                    'en' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_SECTION_TOOLTIP_NAME_EN')
+                ],
             ]
         ];
         foreach ($stringUfFields as $uf) {
@@ -310,20 +362,20 @@ function InstallDB(): bool
             'IS_SEARCHABLE'     => 'N',
             'SETTINGS'          => ['height' => 300],
             'EDIT_FORM_LABEL'   => [
-                'ru' => 'HTML блок',
-                'en' => 'HTML block',
+                'ru' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_HTML_BLOCK_NAME_RU'),
+                'en' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_HTML_BLOCK_NAME_EN'),
             ],
             'LIST_COLUMN_LABEL' => [ // [FIXED] Обновлена метка на единственное число
-                'ru' => 'HTML блок',
-                'en' => 'HTML block',
+                'ru' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_HTML_BLOCK_NAME_RU'),
+                'en' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_HTML_BLOCK_NAME_EN'),
             ],
             'LIST_FILTER_LABEL' => [
-                'ru' => 'HTML блок',
-                'en' => 'HTML block',
+                'ru' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_HTML_BLOCK_NAME_RU'),
+                'en' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_HTML_BLOCK_NAME_EN'),
             ],
             'HELP_MESSAGE'      => [
-                'ru' => 'Позволяет добавить произвольный HTML блок с заголовком в раздел.',
-                'en' => 'Allows adding a custom HTML block with a title to the section.',
+                'ru' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_HTML_BLOCK_HELP_RU'),
+                'en' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_HTML_BLOCK_HELP_EN'),
             ],
         ];
 
@@ -349,20 +401,20 @@ function InstallDB(): bool
             'IS_SEARCHABLE'     => 'N',
             'SETTINGS'          => [], // Настройки для этого поля не требуются
             'EDIT_FORM_LABEL'   => [
-                'ru' => 'Ключ-значение для раздела',
-                'en' => 'Key-Value for Section',
+                'ru' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_KEY_VALUE_NAME_RU'),
+                'en' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_KEY_VALUE_NAME_EN'),
             ],
             'LIST_COLUMN_LABEL' => [
-                'ru' => 'Ключ-значение',
-                'en' => 'Key-Value',
+                'ru' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_KEY_VALUE_LIST_NAME_RU'),
+                'en' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_KEY_VALUE_LIST_NAME_EN'),
             ],
             'LIST_FILTER_LABEL' => [
-                'ru' => 'Ключ-значение',
-                'en' => 'Key-Value',
+                'ru' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_KEY_VALUE_LIST_NAME_RU'),
+                'en' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_KEY_VALUE_LIST_NAME_EN'),
             ],
             'HELP_MESSAGE'      => [
-                'ru' => 'Произвольные пары ключ-значение для данного раздела.',
-                'en' => 'Arbitrary key-value pairs for this section.',
+                'ru' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_KEY_VALUE_HELP_RU'),
+                'en' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_KEY_VALUE_HELP_EN'),
             ],
         ];
 
@@ -378,23 +430,23 @@ function InstallDB(): bool
         $enum = new \CIBlockPropertyEnum();
 
         $properties = [
-            ['NAME' => 'Варианты значений', 'CODE' => 'VALUES', 'PROPERTY_TYPE' => 'S', 'USER_TYPE' => 'QwelpSettingsValues', 'HINT' => 'JSON-массив вариантов'],
-            ['NAME' => 'Показать заголовок', 'CODE' => 'SHOW_TITLE', 'PROPERTY_TYPE' => 'L', 'LIST_TYPE' => 'C', 'HINT' => 'Отображать заголовок на странице'],
-            ['NAME' => 'Отображать в заголовке для свернутого блока', 'CODE' => 'HEADER_TITLE', 'PROPERTY_TYPE' => 'L', 'LIST_TYPE' => 'C', 'HINT' => 'Показывать в общем заголовке свернутого блока'],
-            ['NAME' => 'Скрытое свойство с открытием checkbox', 'CODE' => 'HIDDEN_CHECKBOX', 'PROPERTY_TYPE' => 'L', 'LIST_TYPE' => 'C', 'HINT' => 'Скрытое свойство'],
-            ['NAME' => 'Детальное свойство', 'CODE' => 'DETAIL_PROPERTY', 'PROPERTY_TYPE' => 'L', 'LIST_TYPE' => 'C', 'HINT' => 'Отображать детальное свойство на странице'],
-            ['NAME' => 'Текст подсказки', 'CODE' => 'HELP_TEXT', 'PROPERTY_TYPE' => 'S', 'HINT' => 'Текст, показываемый при клике на ?'],
-            ['NAME' => 'Изображение подсказки', 'CODE' => 'HELP_IMAGE', 'PROPERTY_TYPE' => 'F', 'HINT' => 'Изображение, показываемое в подсказке'],
-            ['NAME' => 'Процент', 'CODE' => 'PERCENT', 'PROPERTY_TYPE' => 'S', 'HINT' => 'Введите значение в процентах'],
+            ['NAME' => Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_VALUES_NAME'), 'CODE' => 'VALUES', 'PROPERTY_TYPE' => 'S', 'USER_TYPE' => 'QwelpSettingsValues', 'HINT' => Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_VALUES_HINT')],
+            ['NAME' => Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_SHOW_TITLE_NAME'), 'CODE' => 'SHOW_TITLE', 'PROPERTY_TYPE' => 'L', 'LIST_TYPE' => 'C', 'HINT' => Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_SHOW_TITLE_HINT')],
+            ['NAME' => Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_HEADER_TITLE_NAME'), 'CODE' => 'HEADER_TITLE', 'PROPERTY_TYPE' => 'L', 'LIST_TYPE' => 'C', 'HINT' => Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_HEADER_TITLE_HINT')],
+            ['NAME' => Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_HIDDEN_CHECKBOX_NAME'), 'CODE' => 'HIDDEN_CHECKBOX', 'PROPERTY_TYPE' => 'L', 'LIST_TYPE' => 'C', 'HINT' => Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_HIDDEN_CHECKBOX_HINT')],
+            ['NAME' => Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_DETAIL_PROPERTY_NAME'), 'CODE' => 'DETAIL_PROPERTY', 'PROPERTY_TYPE' => 'L', 'LIST_TYPE' => 'C', 'HINT' => Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_DETAIL_PROPERTY_HINT')],
+            ['NAME' => Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_HELP_TEXT_NAME'), 'CODE' => 'HELP_TEXT', 'PROPERTY_TYPE' => 'S', 'HINT' => Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_HELP_TEXT_HINT')],
+            ['NAME' => Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_HELP_IMAGE_NAME'), 'CODE' => 'HELP_IMAGE', 'PROPERTY_TYPE' => 'F', 'HINT' => Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_HELP_IMAGE_HINT')],
+            ['NAME' => Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_PERCENT_NAME'), 'CODE' => 'PERCENT', 'PROPERTY_TYPE' => 'S', 'HINT' => Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_PERCENT_HINT')],
             // [NEW] Добавляем экземпляр нашего нового свойства "Ключ-Значение"
             [
-                'NAME' => 'Технические данные',
+                'NAME' => Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_TECH_DATA_NAME'),
                 'CODE' => 'TECH_DATA',
                 'PROPERTY_TYPE' => 'S',
                 'USER_TYPE' => \Qwelp\SiteSettings\Property\KeyValuePropertyType::USER_TYPE,
                 'MULTIPLE' => 'Y',
                 'IS_REQUIRED' => 'N',
-                'HINT' => 'Сериализованный массив пар ключ-значение'
+                'HINT' => Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_TECH_DATA_HINT')
             ],
         ];
 
@@ -406,7 +458,7 @@ function InstallDB(): bool
                 return false;
             }
             if ($prop['PROPERTY_TYPE'] === 'L') {
-                $enum->Add(['PROPERTY_ID' => $propId, 'VALUE' => 'Да', 'DEF' => ($prop['CODE'] === 'SHOW_TITLE' ? 'Y' : 'N'), 'SORT' => 100]);
+                $enum->Add(['PROPERTY_ID' => $propId, 'VALUE' => Loc::getMessage('QWELP_SITE_SETTINGS_PROPERTY_YES'), 'DEF' => ($prop['CODE'] === 'SHOW_TITLE' ? 'Y' : 'N'), 'SORT' => 100]);
             }
         }
 
