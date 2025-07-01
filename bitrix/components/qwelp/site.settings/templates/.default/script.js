@@ -20,6 +20,7 @@ BX.ready(function() {
                 applyBtn: document.querySelector('.btn--apply'),
                 resetBtn: document.querySelector('.btn--reset'),
                 tooltip: null,
+                htmlBlockPopup: null,
             };
 
             this.state = this.createInitialState();
@@ -29,6 +30,7 @@ BX.ready(function() {
             this.updateUIFromState();
             this.initSortable();
             this.createTooltipElement();
+            this.createHtmlBlockPopup();
             this.checkStateChanges();
         }
 
@@ -90,6 +92,7 @@ BX.ready(function() {
                 if (e.key === 'Escape') {
                     this.close();
                     this.hideHelp();
+                    this.hideHtmlBlockPopup();
                 }
             });
 
@@ -109,7 +112,7 @@ BX.ready(function() {
 
             this.elements.panel.addEventListener('click', (e) => {
                 const collapsibleTitle = e.target.closest('.is-collapsible > .setting-group__title');
-                if (collapsibleTitle && !e.target.closest('.setting-group__header-controls, .help-icon-wrapper, .setting-group__activity-toggle')) {
+                if (collapsibleTitle && !e.target.closest('.setting-group__header-controls, .help-icon-wrapper, .setting-group__activity-toggle, .html-block-key')) {
                     this.toggleCollapsibleBlock(collapsibleTitle.parentElement);
                     return;
                 }
@@ -117,6 +120,14 @@ BX.ready(function() {
                 const detailToggle = e.target.closest('.detail-settings-toggle');
                 if (detailToggle) {
                     this.toggleDetailSettings(detailToggle);
+                    return;
+                }
+
+                const htmlBlockKey = e.target.closest('.html-block-key');
+                if (htmlBlockKey) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.showHtmlBlockPopup(htmlBlockKey);
                     return;
                 }
 
@@ -295,8 +306,56 @@ BX.ready(function() {
 
         checkStateChanges() { const hasChanges = JSON.stringify(this.state) !== JSON.stringify(this.originalState); this.elements.applyBtn.disabled = !hasChanges; this.elements.resetBtn.disabled = !hasChanges; }
         createTooltipElement() { const tooltip = document.createElement('div'); tooltip.className = 'qwelp-help-tooltip'; document.body.appendChild(tooltip); this.elements.tooltip = tooltip; }
+        createHtmlBlockPopup() { 
+            const popup = document.createElement('div'); 
+            popup.className = 'html-block-popup'; 
+
+            const content = document.createElement('div');
+            content.className = 'html-block-popup__content';
+
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'html-block-popup__close';
+            closeBtn.innerHTML = '×';
+            closeBtn.addEventListener('click', () => this.hideHtmlBlockPopup());
+
+            popup.appendChild(content);
+            popup.appendChild(closeBtn);
+
+            popup.addEventListener('click', (e) => {
+                if (e.target === popup) {
+                    this.hideHtmlBlockPopup();
+                }
+            });
+
+            document.body.appendChild(popup); 
+            this.elements.htmlBlockPopup = popup; 
+        }
+        showHtmlBlockPopup(keyElement) {
+            if (!keyElement || !this.elements.htmlBlockPopup) return;
+
+            const value = keyElement.dataset.htmlBlockValue || '';
+            if (!value) return;
+
+            const content = this.elements.htmlBlockPopup.querySelector('.html-block-popup__content');
+            if (content) {
+                content.innerHTML = value;
+            }
+
+            this.elements.htmlBlockPopup.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        hideHtmlBlockPopup() {
+            if (this.elements.htmlBlockPopup) {
+                this.elements.htmlBlockPopup.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
         open() { this.elements.overlay?.classList.add('active'); document.body.style.overflow = 'hidden'; }
-        close() { this.elements.overlay?.classList.remove('active'); document.body.style.overflow = ''; }
+        close() { 
+            this.elements.overlay?.classList.remove('active'); 
+            document.body.style.overflow = ''; 
+            this.hideHtmlBlockPopup();
+        }
         apply() { this.elements.applyBtn.disabled = true; this.elements.resetBtn.disabled = true; BX.ajax.runComponentAction(this.config.componentName, 'saveSettings', { mode: 'class', signedParameters: this.config.signedParams, data: { settings: this.state, siteId: this.config.siteId } }).then(response => { if (response.data.success) { alert(this.config.messages.SETTINGS_SAVED); this.originalState = JSON.parse(JSON.stringify(this.state)); window.location.reload(); } else { alert(this.config.messages.SAVE_ERROR + (response.data.message || '')); this.checkStateChanges(); } }).catch(error => { alert(this.config.messages.SAVE_ERROR_SIMPLE); console.error('Save settings error:', error); this.checkStateChanges(); }); }
         reset() { if (confirm(this.config.messages.RESET_CONFIRM)) { this.state = JSON.parse(JSON.stringify(this.originalState)); this.updateUIFromState(); this.checkStateChanges(); } }
         traverseSections(node, callback) { if (node.settings && Array.isArray(node.settings)) { node.settings.forEach((setting) => callback(setting, node)); } if (node.HEADER_SETTINGS && Array.isArray(node.HEADER_SETTINGS)) { node.HEADER_SETTINGS.forEach((setting) => callback(setting, node)); } if (node.SUBSECTIONS && typeof node.SUBSECTIONS === 'object') { Object.values(node.SUBSECTIONS).forEach(subSection => { this.traverseSections(subSection, callback); }); } }

@@ -98,6 +98,11 @@ if (!class_exists('TemplateRenderer')) {
                                   title="<?= Loc::getMessage('QWELP_SITE_SETTINGS_HELP_ICON_TITLE') ?>">?</span>
                         </span>
                     <?php endif; ?>
+                    <?php if (!empty($section['UF_HTML_BLOCK']) && !empty($section['UF_HTML_BLOCK']['key'])): ?>
+                        <span class="html-block-key" data-html-block-value="<?= htmlspecialcharsbx($section['UF_HTML_BLOCK']['value']) ?>">
+                            <?= htmlspecialcharsbx($section['UF_HTML_BLOCK']['key']) ?>
+                        </span>
+                    <?php endif; ?>
                     <?php if ($hasHeaderSettings): ?>
                         <div class="setting-group__header-controls">
                             <?php
