@@ -114,6 +114,7 @@ if (!function_exists('renderSettingControl')) {
                         <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
+                <?php if (!empty($setting['color_show_picker'])): ?>
                 <div class="color-input-container">
                     <input type="color"
                            class="visually-hidden"
@@ -133,6 +134,7 @@ if (!function_exists('renderSettingControl')) {
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.34l.66-3.33a2 2 0 00-1.92-2.39H12a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                     </label>
                 </div>
+                <?php endif; ?>
             </div>
 
         <?php elseif ($type === 'radioImage' && is_array($setting['options'])): ?>

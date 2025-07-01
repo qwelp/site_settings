@@ -45,13 +45,13 @@ $MESS['QWELP_SITE_SETTINGS_UF_HIDDEN_ELEMENTS_TITLE_NAME_EN'] = 'Title for hidde
 $MESS['QWELP_SITE_SETTINGS_UF_HIDDEN_ELEMENTS_TITLE_HELP_RU'] = 'Заголовок для группы скрытых элементов.';
 $MESS['QWELP_SITE_SETTINGS_UF_HIDDEN_ELEMENTS_TITLE_HELP_EN'] = 'Title for hidden elements group.';
 
-$MESS['QWELP_SITE_SETTINGS_UF_SECTION_TOOLTIP_NAME_RU'] = 'Подсказка раздела';
+$MESS['QWELP_SITE_SETTINGS_UF_SECTION_TOOLTIP_NAME_RU'] = 'Подсказка раздела короткая';
 $MESS['QWELP_SITE_SETTINGS_UF_SECTION_TOOLTIP_NAME_EN'] = 'Section Tooltip';
 $MESS['QWELP_SITE_SETTINGS_UF_SECTION_TOOLTIP_HELP_RU'] = 'Текст подсказки, отображаемый рядом с заголовком раздела.';
 $MESS['QWELP_SITE_SETTINGS_UF_SECTION_TOOLTIP_HELP_EN'] = 'Tooltip text displayed next to the section title.';
 
-$MESS['QWELP_SITE_SETTINGS_UF_HTML_BLOCK_NAME_RU'] = 'HTML блок';
-$MESS['QWELP_SITE_SETTINGS_UF_HTML_BLOCK_NAME_EN'] = 'HTML block';
+$MESS['QWELP_SITE_SETTINGS_UF_HTML_BLOCK_NAME_RU'] = 'Подсказка раздела расширенное';
+$MESS['QWELP_SITE_SETTINGS_UF_HTML_BLOCK_NAME_EN'] = 'Подсказка раздела расширенное';
 $MESS['QWELP_SITE_SETTINGS_UF_HTML_BLOCK_HELP_RU'] = 'Позволяет добавить произвольный HTML блок с заголовком в раздел.';
 $MESS['QWELP_SITE_SETTINGS_UF_HTML_BLOCK_HELP_EN'] = 'Allows adding a custom HTML block with a title to the section.';
 
