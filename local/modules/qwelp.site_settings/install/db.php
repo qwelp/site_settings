@@ -272,6 +272,19 @@ function InstallDB(): bool
                     'ru' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_HIDDEN_CHECKBOX_NAME_RU'), 
                     'en' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_HIDDEN_CHECKBOX_NAME_EN')
                 ],
+            ],
+            [
+                'FIELD_NAME' => 'UF_FULL_WIDTH',
+                'XML_ID' => 'UF_FULL_WIDTH',
+                'SORT' => 540,
+                'HELP_MESSAGE' => [
+                    'ru' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_FULL_WIDTH_HELP_RU'), 
+                    'en' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_FULL_WIDTH_HELP_EN')
+                ],
+                'EDIT_FORM_LABEL' => [
+                    'ru' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_FULL_WIDTH_NAME_RU'), 
+                    'en' => Loc::getMessage('QWELP_SITE_SETTINGS_UF_FULL_WIDTH_NAME_EN')
+                ],
             ]
         ];
         foreach ($ufFields as $uf) {
@@ -497,6 +510,7 @@ function UnInstallDB(): bool
             'UF_COMMON_PROPERTY',
             'UF_COLLAPSED_BLOCK',
             'UF_HIDDEN_CHECKBOX',
+            'UF_FULL_WIDTH',
             'UF_HIDDEN_ELEMENTS_TITLE',
             'UF_SECTION_TOOLTIP',
             'UF_HTML_BLOCK',

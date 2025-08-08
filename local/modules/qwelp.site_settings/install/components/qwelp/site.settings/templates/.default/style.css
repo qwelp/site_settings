@@ -175,6 +175,7 @@
 }
 
 .radio-card-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--qss-space-m); width: 100%; }
+.radio-card--full-width { grid-column: 1 / -1; }
 .radio-card__input { display: none; }
 .radio-card__label { display: flex; flex-direction: column; padding: var(--qss-space-m); border: 2px solid var(--qss-border-color); border-radius: var(--qss-radius); cursor: pointer; height: 100%; transition: all var(--qss-transition); background: var(--qss-body-bg); }
 .radio-card__label:hover { border-color: #c0d5f8; background-color: var(--qss-panel-bg); }

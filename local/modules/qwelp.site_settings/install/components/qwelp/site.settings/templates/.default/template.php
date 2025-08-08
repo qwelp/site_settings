@@ -117,7 +117,8 @@ if (!class_exists('TemplateRenderer')) {
                             <?php
                             $groupCode = $section['id'];
                             foreach ($section['SUBSECTIONS'] as $subSection) {
-                                $this->renderRadioCard($subSection, $groupCode);
+                                $isFullWidth = !empty($subSection['UF_FULL_WIDTH']) && (int)$subSection['UF_FULL_WIDTH'] === 1;
+                                $this->renderRadioCard($subSection, $groupCode, $isFullWidth);
                             }
                             ?>
                         </div>
@@ -165,7 +166,7 @@ if (!class_exists('TemplateRenderer')) {
             <?php
         }
 
-        private function renderRadioCard(array $subSection, string $groupCode): void
+        private function renderRadioCard(array $subSection, string $groupCode, bool $isFullWidth = false): void
         {
             $templatePath = $this->templatePath;
             $radioId = 'radio_card_' . htmlspecialcharsbx($subSection['id']);
@@ -185,8 +186,13 @@ if (!class_exists('TemplateRenderer')) {
                 }
             }
             $hasDetailSettings = !empty($detailSettings);
+            
+            $radioCardClasses = ['radio-card'];
+            if ($isFullWidth) {
+                $radioCardClasses[] = 'radio-card--full-width';
+            }
             ?>
-            <div class="radio-card">
+            <div class="<?= implode(' ', $radioCardClasses) ?>">
                 <input type="radio"
                        name="<?= htmlspecialcharsbx($groupCode) ?>"
                        id="<?= $radioId ?>"
