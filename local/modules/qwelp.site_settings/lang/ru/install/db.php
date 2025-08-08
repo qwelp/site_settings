@@ -40,6 +40,11 @@ $MESS['QWELP_SITE_SETTINGS_UF_HIDDEN_CHECKBOX_NAME_EN'] = 'Hidden Checkbox';
 $MESS['QWELP_SITE_SETTINGS_UF_HIDDEN_CHECKBOX_HELP_RU'] = 'Скрытое свойство с чекбоксом.';
 $MESS['QWELP_SITE_SETTINGS_UF_HIDDEN_CHECKBOX_HELP_EN'] = 'Hidden property with a checkbox.';
 
+$MESS['QWELP_SITE_SETTINGS_UF_FULL_WIDTH_NAME_RU'] = '100% ширины';
+$MESS['QWELP_SITE_SETTINGS_UF_FULL_WIDTH_NAME_EN'] = 'Full Width';
+$MESS['QWELP_SITE_SETTINGS_UF_FULL_WIDTH_HELP_RU'] = 'Использовать 100% ширины для элементов раздела.';
+$MESS['QWELP_SITE_SETTINGS_UF_FULL_WIDTH_HELP_EN'] = 'Use 100% width for section elements.';
+
 $MESS['QWELP_SITE_SETTINGS_UF_HIDDEN_ELEMENTS_TITLE_NAME_RU'] = 'Название для спрятанных элементов';
 $MESS['QWELP_SITE_SETTINGS_UF_HIDDEN_ELEMENTS_TITLE_NAME_EN'] = 'Title for hidden elements';
 $MESS['QWELP_SITE_SETTINGS_UF_HIDDEN_ELEMENTS_TITLE_HELP_RU'] = 'Заголовок для группы скрытых элементов.';
